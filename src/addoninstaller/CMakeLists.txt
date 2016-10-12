@@ -15,8 +15,12 @@ include_directories(
 add_sources(
 	AddonInstaller.h
 	AddonInstaller.cpp
+	CAddonDataLoader.h
+	CAddonDataLoader.cpp
 	CAddonInstaller.h
 	CAddonInstaller.cpp
+	Helpers.h
+	Helpers.cpp
 	InstallerInterface.h
 	InstallerInterface.cpp
 )

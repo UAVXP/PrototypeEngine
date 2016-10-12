@@ -1,6 +1,8 @@
 #ifndef ADDONINSTALLER_CADDONINSTALLER_H
 #define ADDONINSTALLER_CADDONINSTALLER_H
 
+#include <experimental/filesystem>
+
 #include "steam_api.h"
 
 #include "Platform.h"
@@ -9,7 +11,10 @@
 
 #include "lib/CLibrary.h"
 
+namespace fs = std::experimental::filesystem;
+
 class IFileSystem2;
+class CAppInfo;
 
 class CAddonInstaller final : public IMetaTool
 {
@@ -24,11 +29,18 @@ public:
 
 	CSteamAPIContext& GetSteamAPIContext() { return m_SteamAPIContext; }
 
+	const fs::path& GetSCGameDir() const { return m_SCGameDir; }
+
+	IFileSystem2* GetFileSystem() { return m_pFileSystem; }
+
 	bool Startup( IMetaLoader& loader, CreateInterfaceFn* pFactories, const size_t uiNumFactories ) override;
 
 	bool Run() override;
 
 	void Shutdown() override;
+
+private:
+	static void LogHelp( const CAppInfo& appInfo );
 
 private:
 	IMetaLoader* m_pLoader = nullptr;
@@ -42,6 +54,8 @@ private:
 	bool m_bSteamAPIInitialized = false;
 
 	CSteamAPIContext m_SteamAPIContext;
+
+	fs::path m_SCGameDir;
 
 	IFileSystem2* m_pFileSystem = nullptr;
 };
