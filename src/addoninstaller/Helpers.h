@@ -18,15 +18,39 @@ const AppId_t SVENCOOP_APPID = 225840;
 class CAppInfo final
 {
 public:
+	/**
+	*	The game's app ID.
+	*/
 	AppId_t appId;
+
+	/**
+	*	Name of the game.
+	*/
 	std::string szName;
+
+	/**
+	*	The game's mod directory.
+	*/
 	std::string szModDir;
+
+	/**
+	*	Name of the .sven file that contains support files.
+	*/
 	std::string szSvenSupportFile;
 
+	/**
+	*	Whether this game uses the Blue Shift BSP format.
+	*/
 	bool bIsBShiftMapFormat;
 
+	/**
+	*	Maps to copy and convert.
+	*/
 	std::vector<std::string> mapNames;
 
+	/**
+	*	Path to the game's mod directory. Retrieved from Steam.
+	*/
 	char szPath[ MAX_PATH ];
 
 	CAppInfo()
@@ -106,8 +130,14 @@ bool GetDirectoriesFromSteam( std::vector<CAppInfo>& appInfos );
 fs::path RipentFilename();
 fs::path UnzipFilename();
 
+/**
+*	Checks whether required files exist. This includes ripent and unzip.
+*/
 bool HasRequiredFiles();
 
+/**
+*	Copies all game files for a given game.
+*/
 bool CopyGameFiles( const CAppInfo& appInfo );
 
 #endif //ADDONINSTALLER_HELPERS_H
