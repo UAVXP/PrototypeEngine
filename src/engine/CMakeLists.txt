@@ -18,6 +18,7 @@ include_directories(
 	${CMAKE_SOURCE_DIR}/external/HL_SDK/public/math
 	${CMAKE_SOURCE_DIR}/external/SDL2/include
 	${CMAKE_SOURCE_DIR}/external/GLEW/include
+	${CMAKE_SOURCE_DIR}/external/FREETYPE/include
 	${CMAKE_SOURCE_DIR}/external/SOURCE_SDK/src/public/steam
 	${CMAKE_SOURCE_DIR}/external/VGUI1/include
 	${OPENGL_INCLUDE_DIR}
@@ -95,10 +96,16 @@ find_library( SDL2 ${SDL2_NAME} PATHS ${CMAKE_SOURCE_DIR}/external/SDL2/lib/ "${
 
 find_library( GLEW2 glew32s ${CMAKE_SHARED_LIBRARY_PREFIX}GLEW${CMAKE_STATIC_LIBRARY_SUFFIX} PATHS ${CMAKE_SOURCE_DIR}/external/GLEW/lib/ )
 
+find_library( FREETYPE freetype27 PATHS ${CMAKE_SOURCE_DIR}/external/FREETYPE/lib/ )
+
+find_library( FREETYPE_DEBUG freetype27d PATHS ${CMAKE_SOURCE_DIR}/external/FREETYPE/lib/ )
+
 #Link with engine dependencies
 target_link_libraries( Engine 
 	${SDL2}
 	${GLEW2}
+	optimized ${FREETYPE}
+	debug ${FREETYPE_DEBUG}
 	${OPENGL_LIBRARIES}
 	${VGUI1}
 	Tier1
