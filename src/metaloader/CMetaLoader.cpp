@@ -140,6 +140,14 @@ bool CMetaLoader::RunLoader()
 		{
 			SDL_HideWindow( m_pEngineWindow );
 		}
+
+		//Run the SDL message pump to purge any events that are still pending.
+		//This will also process the hide event sent above.
+		SDL_Event event;
+
+		while( SDL_PollEvent( &event ) )
+		{
+		}
 	}
 
 	{
