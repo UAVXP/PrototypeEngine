@@ -127,7 +127,16 @@ bool CMetaLoader::RunLoader()
 		if( !InitCommandLine( iArgC, &ppszArgV ) )
 			return false;
 
-		if( !GetCommandLine()->Initialize( iArgC, ppszArgV, STRIP_COMMANDS ) )
+		const bool bResult = GetCommandLine()->Initialize( iArgC, ppszArgV, STRIP_COMMANDS );
+
+		for( int iArg = 0; iArg < iArgC; ++iArg )
+		{
+			delete[] ppszArgV[ iArg ];
+		}
+
+		delete[] ppszArgV;
+
+		if( !bResult )
 			return false;
 	}
 
