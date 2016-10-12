@@ -34,6 +34,8 @@
 #define stricmp _stricmp
 #define strnicmp _strnicmp
 #define alloca _alloca
+#define popen _popen
+#define pclose _pclose
 
 //Older versions of Visual Studio (< VS2015) didn't define these. - Solokiller
 #if _MSC_VER < 1900
@@ -54,6 +56,11 @@
 //Define these macros once only. The SDK is such a mess. - Solokiller
 #define DLLEXPORT __declspec( dllexport )
 #define DLLIMPORT __declspec( dllimport )
+
+#define FILESYSTEM_PATH_SEPARATOR "\\"
+#define FILESYSTEM_OTHER_PATH_SEPARATOR "/"
+#define FILESYSTEM_PATH_SEPARATOR_CHAR '\\'
+#define FILESYSTEM_OTHER_PATH_SEPARATOR_CHAR '/'
 
 //This isn't needed 99.99% of the time. Provide an escape hatch nonetheless. - Solokiller
 #ifndef HL_USE_VOID_DEF
@@ -83,6 +90,11 @@
 
 #define DLLEXPORT __attribute__( ( visibility( "default" ) ) )
 #define DLLIMPORT
+
+#define FILESYSTEM_PATH_SEPARATOR "/"
+#define FILESYSTEM_OTHER_PATH_SEPARATOR "\\"
+#define FILESYSTEM_PATH_SEPARATOR_CHAR '/'
+#define FILESYSTEM_OTHER_PATH_SEPARATOR_CHAR '\\'
 
 #define __cdecl
 
