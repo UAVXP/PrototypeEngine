@@ -34,6 +34,8 @@ public:
 
 	const char* GetValue( const char* const pszKey ) const override;
 
+	bool HasArgument( const char* const pszKey ) const override;
+
 private:
 	void Clear();
 

@@ -197,9 +197,22 @@ const char* CCommandLine::GetValue( const char* const pszKey ) const
 		return nullptr;
 
 	if( uiIndex + 1 < m_Arguments.size() )
-		return m_Arguments[ uiIndex + 1 ].c_str();
+	{
+		auto pszResult = m_Arguments[ uiIndex + 1 ].c_str();
+
+		//- and + are keys, not values.
+		if( *pszResult == '-' || *pszResult == '+' )
+			return nullptr;
+
+		return pszResult;
+	}
 
 	return "";
+}
+
+bool CCommandLine::HasArgument( const char* const pszKey ) const
+{
+	return IndexOf( pszKey ) != INVALID_INDEX;
 }
 
 void CCommandLine::Clear()

@@ -57,9 +57,16 @@ public:
 	/**
 	*	Gets the value for a key.
 	*	@param pszKey Key to search for.
-	*	@return If the key was found, returns the value. Otherwise, returns null. If the key is the last argument, returns an empty string.
+	*	@return If the key was found, returns the value if it has one. Otherwise, returns null. If the key is the last argument, returns an empty string.
 	*/
 	virtual const char* GetValue( const char* const pszKey ) const = 0;
+
+	/**
+	*	Checks whether the given argument was provided.
+	*	@param pszKey Key to search for.
+	*	@return Whether the argument was provided.
+	*/
+	virtual bool HasArgument( const char* const pszKey ) const = 0;
 };
 
 inline ICommandLine::~ICommandLine()
