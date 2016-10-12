@@ -179,12 +179,14 @@ bool CMetaLoader::RunLoader()
 		if( !pszToolName )
 			pszToolName = DEFAULT_IMETATOOL_NAME;
 
-		auto toolPath = fs::path( filepaths::TOOLS_DIR ) / pszToolLib / filepaths::BIN_DIR;
+		auto toolPath = fs::path( filepaths::TOOLS_DIR ) / pszToolLib;
 
 		strncpy( m_szToolDir, toolPath.u8string().c_str(), sizeof( m_szToolDir ) );
 		m_szToolDir[ sizeof( m_szToolDir ) - 1 ] = '\0';
 
-		if( !m_ToolLib.Load( CLibArgs( pszToolLib ).DisablePrefixes( true ).Path( m_szToolDir ) ) )
+		toolPath /= filepaths::BIN_DIR;
+
+		if( !m_ToolLib.Load( CLibArgs( pszToolLib ).DisablePrefixes( true ).Path( toolPath.u8string().c_str() ) ) )
 		{
 			Msg( "Couldn't load tool \"%s\" library \"%s\"\n", pszToolName, pszToolLib );
 			return false;
