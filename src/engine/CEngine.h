@@ -36,6 +36,8 @@ public:
 	void RunFrame();
 
 private:
+	bool SetupFileSystem();
+
 	bool HostInit();
 
 	void CreateMainMenuBackground();

@@ -41,8 +41,6 @@ private:
 
 	bool LoadFileSystem();
 
-	bool SetupFileSystem();
-
 	SDL_Window* FindEngineWindow();
 
 private:

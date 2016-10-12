@@ -123,12 +123,6 @@ bool CMetaLoader::RunLoader()
 	if( !LoadFileSystem() )
 		return false;
 
-	if( !SetupFileSystem() )
-	{
-		Msg( "Failed to set up filesystem\n" );
-		return false;
-	}
-
 	if( m_bIsListenServer )
 	{
 		//Already done by GoldSource. - Solokiller
@@ -237,19 +231,6 @@ bool CMetaLoader::LoadFileSystem()
 		Msg( "Couldn't instantiate the filesystem\n" );
 		return false;
 	}
-
-	return true;
-}
-
-bool CMetaLoader::SetupFileSystem()
-{
-	m_pFileSystem->AddSearchPath( ".", "ROOT" );
-
-	//This will let us get files from the original game directory. - Solokiller
-	m_pFileSystem->AddSearchPath( "../valve", "GAME" );
-
-	//Not a typo, the current dir is added twice as both ROOT and BASE in this order. - Solokiller
-	m_pFileSystem->AddSearchPath( ".", "BASE" );
 
 	return true;
 }

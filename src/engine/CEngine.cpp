@@ -80,6 +80,12 @@ bool CEngine::Startup( IMetaLoader& loader, CreateInterfaceFn* pFactories, const
 		return false;
 	}
 
+	if( !SetupFileSystem() )
+	{
+		Msg( "Failed to set up filesystem\n" );
+		return false;
+	}
+
 	//Load the original filesystem and overwrite its filesystem's vtable with one that points to ours.
 	//Note: if the original engine regains control, it might try to use preexisting handles. Don't let that happen. - Solokiller
 	{
@@ -150,6 +156,19 @@ void CEngine::Shutdown()
 void CEngine::RunFrame()
 {
 	RenderFrame();
+}
+
+bool CEngine::SetupFileSystem()
+{
+	g_pFileSystem->AddSearchPath( ".", "ROOT" );
+
+	//This will let us get files from the original game directory. - Solokiller
+	g_pFileSystem->AddSearchPath( "../valve", "GAME" );
+
+	//Not a typo, the current dir is added twice as both ROOT and BASE in this order. - Solokiller
+	g_pFileSystem->AddSearchPath( ".", "BASE" );
+
+	return true;
 }
 
 bool CEngine::HostInit()
