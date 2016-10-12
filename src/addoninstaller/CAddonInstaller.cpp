@@ -22,7 +22,11 @@ extern "C" void __cdecl SteamAPIDebugTextHook( int nSeverity, const char *pchDeb
 {
 	// if you're running in the debugger, only warnings (nSeverity >= 1) will be sent
 	// if you add -debug_steamapi to the command-line, a lot of extra informational messages will also be sent
+#ifdef WIN32
 	::OutputDebugString( pchDebugText );
+#else
+	printf( "%s", pchDebugText );
+#endif
 
 	if( nSeverity >= 1 )
 	{
@@ -144,35 +148,40 @@ bool CAddonInstaller::Run()
 		}
 	}
 
-	if( !GetDirectoriesFromSteam( apps ) )
-		Log( LogLevel::ALWAYS, "Failed to get installation directories from Steam\n" );
-
-	if( AskForDirectories( apps ) )
+	if( !apps.empty() )
 	{
-		if( HasRequiredFiles() )
+		if( !GetDirectoriesFromSteam( apps ) )
+			Log( LogLevel::ALWAYS, "Failed to get installation directories from Steam\n" );
+
+		if( AskForDirectories( apps ) )
 		{
-			Log( LogLevel::NORMAL, "\nAll required installer files found\n\n" );
-
-			for( const auto& appInfo : apps )
+			if( HasRequiredFiles() )
 			{
-				if( appInfo.szPath[ 0 ] )
-				{
-					
-					if( !CopyGameFiles( appInfo ) )
-						LogHelp( appInfo );
-						
-				}
-			}
+				Log( LogLevel::NORMAL, "\nAll required installer files found\n\n" );
 
-			Log( LogLevel::NORMAL, "\nDone!\n" );
+				for( const auto& appInfo : apps )
+				{
+					if( appInfo.szPath[ 0 ] )
+					{
+					
+						if( !CopyGameFiles( appInfo ) )
+							LogHelp( appInfo );
+						
+					}
+				}
+
+				Log( LogLevel::NORMAL, "\nDone!\n" );
+			}
+			else
+			{
+				Log( LogLevel::ALWAYS, "Unable to find some requires files\n" );
+			}
 		}
 		else
-		{
-			Log( LogLevel::ALWAYS, "Unable to find some requires files\n" );
-		}
+			Log( LogLevel::ALWAYS, "Unable to find app install directories\n" );
 	}
 	else
-		Log( LogLevel::ALWAYS, "Unable to find app install directories\n" );
+		Log( LogLevel::ALWAYS, "No apps provided to copy\n" );
 
 	if( !bSilent )
 	{
