@@ -12,6 +12,8 @@
 
 #include "CMetaLoader.h"
 
+namespace fs = std::experimental::filesystem;
+
 CMetaLoader g_MetaLoader;
 
 EXPOSE_SINGLE_INTERFACE_GLOBALVAR( CMetaLoader, IMetaLoader, IMETALOADER_NAME, g_MetaLoader );
@@ -34,6 +36,20 @@ const char* CMetaLoader::GetGameDirectory( char* pszDest, size_t uiSizeInCharact
 		return nullptr;
 
 	strncpy( pszDest, m_szGameDir, uiSizeInCharacters );
+	pszDest[ uiSizeInCharacters - 1 ] = '\0';
+
+	return pszDest;
+}
+
+const char* CMetaLoader::GetToolDirectory( char* pszDest, size_t uiSizeInCharacters ) const
+{
+	if( !pszDest || uiSizeInCharacters <= 0 )
+		return nullptr;
+
+	if( strlen( m_szToolDir ) >= uiSizeInCharacters )
+		return nullptr;
+
+	strncpy( pszDest, m_szToolDir, uiSizeInCharacters );
 	pszDest[ uiSizeInCharacters - 1 ] = '\0';
 
 	return pszDest;
@@ -163,7 +179,12 @@ bool CMetaLoader::RunLoader()
 		if( !pszToolName )
 			pszToolName = DEFAULT_IMETATOOL_NAME;
 
-		if( !m_ToolLib.Load( CLibArgs( pszToolLib ).DisablePrefixes( true ).Path( filepaths::TOOLS_DIR ) ) )
+		auto toolPath = fs::path( filepaths::TOOLS_DIR ) / pszToolLib / filepaths::BIN_DIR;
+
+		strncpy( m_szToolDir, toolPath.u8string().c_str(), sizeof( m_szToolDir ) );
+		m_szToolDir[ sizeof( m_szToolDir ) - 1 ] = '\0';
+
+		if( !m_ToolLib.Load( CLibArgs( pszToolLib ).DisablePrefixes( true ).Path( m_szToolDir ) ) )
 		{
 			Msg( "Couldn't load tool \"%s\" library \"%s\"\n", pszToolName, pszToolLib );
 			return false;

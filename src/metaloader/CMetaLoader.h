@@ -21,6 +21,8 @@ public:
 
 	const char* GetGameDirectory( char* pszDest, size_t uiSizeInCharacters ) const override;
 
+	const char* GetToolDirectory( char* pszDest, size_t uiSizeInCharacters ) const override;
+
 	SDL_Window* GetEngineWindow() const override;
 
 	bool IsListenServer() const override { return m_bIsListenServer; }
@@ -45,6 +47,8 @@ private:
 
 private:
 	char m_szGameDir[ MAX_PATH ] = {};
+
+	char m_szToolDir[ MAX_PATH ] = {};
 
 	SDL_Window* m_pEngineWindow = nullptr;
 

@@ -108,9 +108,9 @@ target_link_libraries( Engine
 #CMake places libraries in /Debug or /Release on Windows, so explicitly set the paths for both.
 #On Linux, it uses LIBRARY_OUTPUT_DIRECTORY
 set_target_properties( Engine PROPERTIES
-	LIBRARY_OUTPUT_DIRECTORY "${GAME_TOOL_PATH}"
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG "${GAME_TOOL_PATH}"
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${GAME_TOOL_PATH}"
+	LIBRARY_OUTPUT_DIRECTORY "${GAME_TOOL_PATH}/Engine/bin"
+	RUNTIME_OUTPUT_DIRECTORY_DEBUG "${GAME_TOOL_PATH}/Engine/bin"
+	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${GAME_TOOL_PATH}/Engine/bin"
 )
 
 if( WIN32 AND MSVC )

@@ -27,6 +27,8 @@
 #include "windows.h"
 #include "winsani_out.h"
 
+#undef ERROR
+
 #define stricmp _stricmp
 #define strupr _strupr
 #define stricmp _stricmp

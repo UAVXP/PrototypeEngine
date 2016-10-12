@@ -28,6 +28,15 @@ public:
 	virtual const char* GetGameDirectory( char* pszDest, size_t uiSizeInCharacters ) const = 0;
 
 	/**
+	*	Gets the directory that the current tool resides in. This is the base directory, not the bin directory.
+	*	The path is relative to the current working directory.
+	*	@param pszDest Destination buffer.
+	*	@param uiSizeInCharacters Size of the buffer, in characters.
+	*	@return If successful, returns pszDest. Otherwise, returns null.
+	*/
+	virtual const char* GetToolDirectory( char* pszDest, size_t uiSizeInCharacters ) const = 0;
+
+	/**
 	*	Gets the original engine window.
 	*/
 	virtual SDL_Window* GetEngineWindow() const = 0;
