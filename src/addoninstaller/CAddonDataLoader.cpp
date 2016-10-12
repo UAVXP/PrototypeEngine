@@ -110,6 +110,15 @@ bool CAddonDataLoader::SkipEmptyLines()
 		if( !std::getline( m_In, szLine ) )
 			return false;
 
+		//Check if any other newline characters were at the end, in case of Linux not liking Windows encoding.
+		while( !szLine.empty() )
+		{
+			if( szLine.back() == '\n' || szLine.back() == '\r' )
+				szLine.resize( szLine.size() - 1 );
+			else
+				break;
+		}
+
 		if( !szLine.empty() )
 			break;
 
@@ -131,6 +140,15 @@ bool CAddonDataLoader::ReadLine( std::string& szLine )
 	{
 		Log( LogLevel::ALWAYS, "CAddonDataLoader: Error while reading at line %u\n", m_uiLine );
 		return false;
+	}
+
+	//Check if any other newline characters were at the end, in case of Linux not liking Windows encoding.
+	while( !szLine.empty() )
+	{
+		if( szLine.back() == '\n' || szLine.back() == '\r' )
+			szLine.resize( szLine.size() - 1 );
+		else
+			break;
 	}
 
 	return true;
