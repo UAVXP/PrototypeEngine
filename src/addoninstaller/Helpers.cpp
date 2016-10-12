@@ -37,6 +37,14 @@ void Log( const LogLevel log, const char* const pszFormat, ... )
 	fflush( stdout );
 }
 
+#ifdef WIN32
+#define CMD_STRING "cmd /S /C \""
+#define CMD_STRING_END "\""
+#else
+#define CMD_STRING "#!/bin/bash "
+#define CMD_STRING_END
+#endif
+
 /*
 * Helper class to redirect output when executing other programs
 */
@@ -47,7 +55,7 @@ public:
 		: m_pFile( nullptr )
 	{
 		//Also redirect stderr
-		const std::string szFullCommand = std::string( "cmd /S /C \"" ) + szCommand + " 2>&1\"";
+		const std::string szFullCommand = std::string( CMD_STRING ) + szCommand + " 2>&1" CMD_STRING_END;
 
 		m_pFile = popen( szFullCommand.c_str(), "r" );
 	}
@@ -404,10 +412,30 @@ fs::path BShiftBSPConverterFilename()
 #endif
 }
 
+using ExistenceCheckerFn = bool ( * )( const fs::path& );
+
+bool RequiredFileExists( const fs::path& filename )
+{
+	std::error_code error;
+
+	return fs::exists( filename, error ) && !error;
+}
+
+bool UnzipExists( const fs::path& filename )
+{
+#ifdef WIN32
+	return RequiredFileExists( filename );
+#else
+	return access( ( fs::path( "/usr/bin/" ) / filename ).u8string().c_str(), X_OK ) == 0;
+#endif
+}
+
 struct RequiredFile_t
 {
 	const fs::path filename;
 	const char* const pszHelpInfo;
+
+	ExistenceCheckerFn existenceChecker;
 };
 
 #define REQ_FILE_VERIFY_FILES "Please verify the game's files or validate the server installation"
@@ -419,12 +447,12 @@ bool HasRequiredFiles()
 {
 	const RequiredFile_t pszRequiredFiles[] =
 	{
-		{ RipentFilename(), REQ_FILE_VERIFY_FILES },
-		{ BShiftBSPConverterFilename(), REQ_FILE_VERIFY_FILES },
+		{ RipentFilename(), REQ_FILE_VERIFY_FILES, &::RequiredFileExists },
+		{ BShiftBSPConverterFilename(), REQ_FILE_VERIFY_FILES, &::RequiredFileExists },
 #ifdef WIN32
-		{ UnzipFilename(), REQ_FILE_VERIFY_FILES }
+		{ UnzipFilename(), REQ_FILE_VERIFY_FILES, &::RequiredFileExists }
 #else
-		{ UnzipFilename(), "You can install unzip using 'apt-get install unzip' on Ubuntu and Debian." }	//Can be anywhere
+		{ UnzipFilename(), "You can install unzip using 'apt-get install unzip' on Ubuntu and Debian.", &::UnzipExists }	//Can be anywhere
 #endif
 	};
 
@@ -434,11 +462,7 @@ bool HasRequiredFiles()
 
 	for( const auto& file : pszRequiredFiles )
 	{
-#ifdef WIN32
-		if( !fs::exists( file.filename ) )
-#else
-		if( access( pszFile, X_OK ) != 0 )
-#endif
+		if( !file.existenceChecker( file.filename ) )
 		{
 			Log( LogLevel::ALWAYS, "Unable to find installer file %s\n%s\n", file.filename.u8string().c_str(), file.pszHelpInfo );
 			bFoundAll = false;
