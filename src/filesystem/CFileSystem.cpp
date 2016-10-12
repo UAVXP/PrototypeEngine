@@ -605,13 +605,15 @@ void CFileSystem::FindClose( FileFindHandle_t handle )
 	//It's the last one, so clear it now.
 	if( handle == m_FindFiles.size() - 1 )
 	{
+		data.flags &= ~FindFileFlag::VALID;
+
 		//Close all invalid find handles between the end and last valid handle.
 		for( auto it = m_FindFiles.rbegin(); it != m_FindFiles.rend(); )
 		{
 			if( data.flags & FindFileFlag::VALID )
 				break;
 
-			it = decltype( it )( m_FindFiles.erase( it.base() ) );
+			it = decltype( it )( m_FindFiles.erase( std::next( it ).base() ) );
 		}
 	}
 	else
