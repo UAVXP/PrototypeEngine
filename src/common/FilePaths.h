@@ -17,6 +17,11 @@ extern const char BIN_DIR[];
 *	Path to the tools directory.
 */
 extern const char TOOLS_DIR[];
+
+/**
+*	Path to the resource directory.
+*/
+extern const char RESOURCE_DIR[];
 }
 
 #endif //COMMON_FILEPATHS_H
