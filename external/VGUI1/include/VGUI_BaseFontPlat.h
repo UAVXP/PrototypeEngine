@@ -27,8 +27,9 @@ public:
 	virtual void getCharRGBA( int ch, int rgbaX, int rgbaY, int rgbaWide, int rgbaTall, uchar* rgba ) = 0;
 	virtual void getCharABCwide( int ch, int& a, int& b, int& c ) = 0;
 	virtual int  getTall() = 0;
-	//TODO: might be linux only
+#ifndef _WIN32
 	virtual int getWide() = 0;
+#endif
 
 	virtual void drawSetTextFont( SurfacePlat* plat ) = 0;
 };
