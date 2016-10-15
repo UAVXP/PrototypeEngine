@@ -9,6 +9,7 @@
 #include <VGUI_BitmapTGA.h>
 #include <VGUI_ImagePanel.h>
 #include <VGUI1/VGUI_RDBitmapTGA.h>
+#include <VGUI_Label.h>
 
 #include "Platform.h"
 
@@ -26,7 +27,11 @@
 
 #include "VGUI1/vgui_loadtga.h"
 
+#include "font/FontRendering.h"
+
 #include "CEngine.h"
+
+font::CFont* g_pFont = nullptr;
 
 EXPOSE_SINGLE_INTERFACE_GLOBALVAR( CEngine, IMetaTool, DEFAULT_IMETATOOL_NAME, g_Engine );
 
@@ -132,6 +137,16 @@ bool CEngine::Startup( IMetaLoader& loader, CreateInterfaceFn* pFactories, const
 		return false;
 	}
 
+	if( !g_FontManager.Initialize() )
+	{
+		return false;
+	}
+
+	g_pFont = g_FontManager.LoadFont( "Tahoma", 16 );
+
+	if( !g_pFont )
+		return false;
+
 	return true;
 }
 
@@ -142,6 +157,8 @@ bool CEngine::Run()
 
 void CEngine::Shutdown()
 {
+	g_FontManager.Shutdown();
+
 	g_Video.Shutdown();
 
 	if( m_steam_api.IsLoaded() )
@@ -202,6 +219,8 @@ bool CEngine::HostInit()
 	return true;
 }
 
+#include <VGUI_Font.h>
+
 void CEngine::CreateMainMenuBackground()
 {
 	auto pBackground = new vgui::Panel();
@@ -237,6 +256,25 @@ void CEngine::CreateMainMenuBackground()
 
 		pImagePanel->setPos( iXOffsetScale * ( uiIndex % 4 ), iYOffsetScale * ( uiIndex / 4 ) );
 	}
+
+	auto pFont = new vgui::Font( "Tahoma", 16, 16, 0, 400, false, false, false, false );
+
+	auto pText = new vgui::Label( "Foobar", 0, 0 );
+
+	pText->setParent( m_pRootPanel );
+
+	pText->setBgColor( 0, 0, 0, 255 );
+	pText->setFgColor( 255, 255, 255, 255 );
+
+	auto pText2 = new vgui::Label( "Foobar", 0, 100 );
+
+	pText2->setParent( m_pRootPanel );
+
+	pText2->setBgColor( 0, 0, 0, 255 );
+	pText2->setFgColor( 255, 255, 255, 255 );
+
+	pText->setFont( pFont );
+	pText2->setFont( pFont );
 }
 
 void CEngine::RenderFrame()
@@ -260,18 +298,24 @@ void CEngine::RenderVGUI1()
 	glMatrixMode( GL_MODELVIEW );
 	glPushMatrix();
 	glLoadIdentity();
-
+	
 	glDisable( GL_CULL_FACE );
 	glDisable( GL_BLEND );
 	glDisable( GL_DEPTH_TEST );
 	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-
+	
 	vgui::App::getInstance()->externalTick();
 	m_pRootPanel->repaintAll();
 	m_pRootPanel->paintTraverse();
-
+	
 	//g_pVGUI1Surface->swapBuffers();
-
+	
 	glPopMatrix();
+
+	//glRectf( 0, 0, 100, 100 );
+	
+	font::rendering::Print( *g_pFont, 100, 100, "Test string foo\nLine 2" );
+	
+	//SDL_GL_SwapWindow( g_Video.GetWindow() );
 }

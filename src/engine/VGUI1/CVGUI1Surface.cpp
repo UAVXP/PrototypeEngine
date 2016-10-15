@@ -1,8 +1,15 @@
 #include <SDL2/SDL.h>
 
 #include <VGUI_Panel.h>
+#include <VGUI_Font.h>
+#include <VGUI_BaseFontPlat.h>
+#include "VGUI1/VGUI_FontPlat.h"
 
 #include "Engine.h"
+
+#include "font/CFont.h"
+#include "font/CFontManager.h"
+#include "font/FontRendering.h"
 
 #include "CVGUI1Surface.h"
 
@@ -112,22 +119,44 @@ void CVGUI1Surface::drawOutlinedRect( int x0, int y0, int x1, int y1 )
 
 void CVGUI1Surface::drawSetTextFont( vgui::Font* font )
 {
-	//TODO
+	if( font )
+	{
+		auto plat = static_cast<vgui::FontPlat*>( font->getPlat() );
+
+		auto pFont = g_FontManager.LoadFont( plat->m_szName, static_cast<unsigned int>( plat->m_iTall ) );
+
+		if( pFont )
+			m_pActiveFont = pFont;
+	}
+	else
+	{
+		m_pActiveFont = nullptr;
+	}
 }
 
 void CVGUI1Surface::drawSetTextColor( int r, int g, int b, int a )
 {
-	//TODO
+	m_TextDrawColor[ 0 ] = r;
+	m_TextDrawColor[ 1 ] = g;
+	m_TextDrawColor[ 2 ] = b;
+	m_TextDrawColor[ 3 ] = a;
 }
 
 void CVGUI1Surface::drawSetTextPos( int x, int y )
 {
-	//TODO
+	m_iTextXPos = x;
+	m_iTextYPos = y;
 }
 
 void CVGUI1Surface::drawPrintText( const char* text, int textLen )
 {
-	//TODO
+	//TODO: consider using a default font. - Solokiller
+	if( !m_pActiveFont )
+		return;
+
+	glColor4ubv( m_TextDrawColor );
+
+	font::rendering::Print( *m_pActiveFont, static_cast<float>( m_iTextXPos ), static_cast<float>( m_iTextYPos ), text );
 }
 
 void CVGUI1Surface::drawSetTextureRGBA( int id, const char* rgba, int wide, int tall )

@@ -5,6 +5,11 @@
 
 #include <VGUI_SurfaceBase.h>
 
+namespace font
+{
+class CFont;
+}
+
 class CVGUI1Surface : public vgui::SurfaceBase
 {
 public:
@@ -42,6 +47,13 @@ private:
 	GLuint m_CurrentTexture = 0;
 
 	uchar m_DrawColor[ 4 ];
+
+	font::CFont* m_pActiveFont = nullptr;
+
+	uchar m_TextDrawColor[ 4 ] = { 255, 255, 255, 255 };
+
+	int m_iTextXPos = 0;
+	int m_iTextYPos = 0;
 };
 
 #endif //ENGINE_VGUI1_CVGUI1SURFACE_H
