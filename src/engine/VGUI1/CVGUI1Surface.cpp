@@ -123,7 +123,7 @@ void CVGUI1Surface::drawSetTextFont( vgui::Font* font )
 	{
 		auto plat = static_cast<vgui::FontPlat*>( font->getPlat() );
 
-		auto pFont = g_FontManager.LoadFont( plat->m_szName, static_cast<unsigned int>( plat->m_iTall ) );
+		auto pFont = g_FontManager.LoadFont( plat->m_szName, static_cast<unsigned int>( plat->m_iTall ), static_cast<unsigned int>( plat->m_iWidth ) );
 
 		if( pFont )
 			m_pActiveFont = pFont;
@@ -150,6 +150,7 @@ void CVGUI1Surface::drawSetTextPos( int x, int y )
 
 void CVGUI1Surface::drawPrintText( const char* text, int textLen )
 {
+	//TODO: textLen indicates the number of characters to draw, null terminator is not the intended end! - Solokiller
 	//TODO: consider using a default font. - Solokiller
 	if( !m_pActiveFont )
 		return;
@@ -249,10 +250,15 @@ void CVGUI1Surface::pushMakeCurrent( vgui::Panel* panel, bool useInsets )
 		static_cast<float>( iXOffset ), 
 		static_cast<float>( iYOffset ), 
 		0 );
+
+	glEnable( GL_SCISSOR_TEST );
+	glScissor( x, ( g_Video.GetHeight() - y ) - panel->getTall(), panel->getWide(), panel->getTall() );
 }
 
 void CVGUI1Surface::popMakeCurrent( vgui::Panel* panel )
 {
+	glDisable( GL_SCISSOR_TEST );
+
 	glMatrixMode( GL_MODELVIEW );
 
 	glPopMatrix();

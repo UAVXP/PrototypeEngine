@@ -23,9 +23,9 @@ public:
 
 	void Shutdown();
 
-	CFont* FindFont( const char* pszFaceName, const unsigned int uiHeight );
+	CFont* FindFont( const char* pszFaceName, const unsigned int uiHeight, const unsigned int uiWidth );
 
-	CFont* LoadFont( const char* pszFaceName, const unsigned int uiHeight );
+	CFont* LoadFont( const char* pszFaceName, const unsigned int uiHeight, const unsigned int uiWidth );
 
 private:
 	Fonts_t m_Fonts;

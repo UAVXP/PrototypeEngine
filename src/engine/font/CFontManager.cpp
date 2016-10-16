@@ -37,15 +37,16 @@ void CFontManager::Shutdown()
 	}
 }
 
-CFont* CFontManager::FindFont( const char* pszFaceName, const unsigned int uiHeight )
+CFont* CFontManager::FindFont( const char* pszFaceName, const unsigned int uiHeight, const unsigned int uiWidth )
 {
 	ASSERT( pszFaceName );
 
 	const float flHeight = static_cast<float>( uiHeight );
+	const float flWidth = static_cast<float>( uiWidth );
 
 	for( const auto& font : m_Fonts )
 	{
-		if( font->Equals( pszFaceName, flHeight ) )
+		if( font->Equals( pszFaceName, flHeight, flWidth ) )
 			return font.get();
 	}
 
@@ -79,8 +80,8 @@ bool MakeDList( FT_Face face, char ch, float flHeight, GLuint list_base, GLuint*
 
 	FT_Bitmap& bitmap = bitmap_glyph->bitmap;
 
-	const unsigned int uiWidth = NextP2( bitmap.width );
-	const unsigned int uiHeight = NextP2( bitmap.rows );
+	const unsigned int uiWidth		= NextP2( bitmap.width );
+	const unsigned int uiHeight		= NextP2( bitmap.rows );
 
 	auto expanded_data = std::make_unique<GLubyte[]>( 2 * uiWidth * uiHeight );
 
@@ -111,9 +112,9 @@ bool MakeDList( FT_Face face, char ch, float flHeight, GLuint list_base, GLuint*
 	glPushMatrix();
 
 	glTranslatef( static_cast<GLfloat>( bitmap_glyph->left ), 0, 0 );
-	//Note: the cast to float is needed because signed int - unsigned int will cause the result to be incorrect.
-	//This causes the glyph to render off-screen. - Solokiller
-	glTranslatef( 0, flHeight + -static_cast<GLfloat>( bitmap_glyph->top ), 0 );
+	////Note: the cast to float is needed because signed int - unsigned int will cause the result to be incorrect.
+	////This causes the glyph to render off-screen. - Solokiller
+	glTranslatef( 0, face->size->metrics.height / 100.0 + -static_cast<GLfloat>( bitmap_glyph->top ), 0 );
 
 	float x = static_cast<float>( bitmap.width ) / uiWidth;
 	float y = static_cast<float>( bitmap.rows ) / uiHeight;
@@ -142,11 +143,11 @@ bool MakeDList( FT_Face face, char ch, float flHeight, GLuint list_base, GLuint*
 	return true;
 }
 
-CFont* CFontManager::LoadFont( const char* pszFaceName, const unsigned int uiHeight )
+CFont* CFontManager::LoadFont( const char* pszFaceName, const unsigned int uiHeight, const unsigned int uiWidth )
 {
 	ASSERT( pszFaceName );
 
-	if( auto pFont = FindFont( pszFaceName, uiHeight ) )
+	if( auto pFont = FindFont( pszFaceName, uiHeight, uiWidth ) )
 		return pFont;
 
 	HFONT hFont = CreateFontA( uiHeight, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, ANSI_CHARSET, 0, 0, 3, DEFAULT_PITCH | FF_DONTCARE, pszFaceName );
@@ -217,7 +218,11 @@ CFont* CFontManager::LoadFont( const char* pszFaceName, const unsigned int uiHei
 		return nullptr;
 	}
 
-	m_Fonts.emplace_back( std::make_unique<CFont>( pszFaceName, static_cast<float>( uiHeight ), uiNumChars, list_base, std::move( textures ) ) );
+	m_Fonts.emplace_back( 
+		std::make_unique<CFont>( 
+			pszFaceName, 
+			static_cast<float>( uiHeight ), static_cast<float>( uiWidth ), 
+			uiNumChars, list_base, std::move( textures ) ) );
 
 	return m_Fonts.back().get();
 }

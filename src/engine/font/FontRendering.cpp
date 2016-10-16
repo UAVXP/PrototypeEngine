@@ -36,7 +36,7 @@ inline void pop_projection_matrix() {
 
 void Print( const CFont& font, float flX, float flY, const char* pszString )
 {
-	pushScreenCoordinateMatrix();
+	//pushScreenCoordinateMatrix();
 
 	GLuint fontID = font.GetListBase();
 
@@ -83,7 +83,7 @@ void Print( const CFont& font, float flX, float flY, const char* pszString )
 
 	glPopAttrib();
 
-	pop_projection_matrix();
+	//pop_projection_matrix();
 }
 }
 }

@@ -142,7 +142,7 @@ bool CEngine::Startup( IMetaLoader& loader, CreateInterfaceFn* pFactories, const
 		return false;
 	}
 
-	g_pFont = g_FontManager.LoadFont( "Tahoma", 16 );
+	g_pFont = g_FontManager.LoadFont( "Tahoma", 16, 0 );
 
 	if( !g_pFont )
 		return false;
@@ -257,7 +257,7 @@ void CEngine::CreateMainMenuBackground()
 		pImagePanel->setPos( iXOffsetScale * ( uiIndex % 4 ), iYOffsetScale * ( uiIndex / 4 ) );
 	}
 
-	auto pFont = new vgui::Font( "Tahoma", 16, 16, 0, 400, false, false, false, false );
+	auto pFont = new vgui::Font( "Arial", 16, 8, 0, 400, false, false, false, false );
 
 	auto pText = new vgui::Label( "Foobar", 0, 0 );
 

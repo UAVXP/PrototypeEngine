@@ -12,12 +12,14 @@ namespace font
 class CFont final
 {
 public:
-	CFont( const char* pszName, const float flHeight, const size_t uiCharCount, GLuint listBase, std::unique_ptr<GLuint[]>&& textures );
+	CFont( const char* pszName, const float flHeight, const float flWidth, const size_t uiCharCount, GLuint listBase, std::unique_ptr<GLuint[]>&& textures );
 	~CFont();
 
 	const char* GetName() const { return m_szName; }
 
 	float GetHeight() const { return m_flHeight; }
+
+	float GetWidth() const { return m_flWidth; }
 
 	size_t GetCharacterCount() const { return m_uiCharCount; }
 
@@ -25,12 +27,13 @@ public:
 
 	const GLuint* GetTextures() const { return m_Textures.get(); }
 
-	bool Equals( const char* pszName, const float flHeight ) const;
+	bool Equals( const char* pszName, const float flHeight, const float flWidth ) const;
 
 private:
 	char m_szName[ MAX_PATH ];
 
 	const float m_flHeight;
+	const float m_flWidth;
 
 	const size_t m_uiCharCount;
 
