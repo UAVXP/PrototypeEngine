@@ -76,11 +76,6 @@ public:
 	float* m_pGaussianDistribution;
 #endif
 };
-
-
-const size_t size = sizeof( FontPlat );
-
-const auto offset = offsetof( FontPlat, m_szName ) / 4;
 }
 
 #endif //ENGINE_VGUI1_VGUI_FONTPLAT_H

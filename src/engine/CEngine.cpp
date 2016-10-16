@@ -264,7 +264,7 @@ void CEngine::CreateMainMenuBackground()
 
 	int size = 0;
 
-	FileHandle_t file = g_pFileSystem->Open( "gfx\\vgui\\fonts\\640_Scoreboard Title Text.tga", "rb" );
+	FileHandle_t file = g_pFileSystem->Open( "gfx/vgui/fonts/640_Scoreboard Title Text.tga", "rb" );
 
 	if( file != FILESYSTEM_INVALID_HANDLE )
 	{
@@ -276,6 +276,8 @@ void CEngine::CreateMainMenuBackground()
 
 		g_pFileSystem->Close( file );
 	}
+
+	Msg( "Loaded bitmap font: %s\n", file != FILESYSTEM_INVALID_HANDLE ? "yes" : "no" );
 
 	auto pFont = new vgui::Font( "Arial", data.get(), size, 16, 8, 0, 400, false, false, false, false );
 

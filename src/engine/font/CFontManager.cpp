@@ -17,6 +17,7 @@ namespace font
 {
 bool CFontManager::Initialize()
 {
+#ifdef WIN32
 	m_HDC = ::CreateCompatibleDC( NULL );
 
 	if( m_HDC == NULL )
@@ -24,17 +25,20 @@ bool CFontManager::Initialize()
 		Msg( "CFontManager::Initialize: Failed to create handle to Device Context\n" );
 		return false;
 	}
+#endif
 
 	return true;
 }
 
 void CFontManager::Shutdown()
 {
+#ifdef WIN32
 	if( m_HDC )
 	{
 		DeleteDC( m_HDC );
 		m_HDC = NULL;
 	}
+#endif
 }
 
 CFont* CFontManager::FindFont( const char* pszFaceName, const unsigned int uiHeight, const unsigned int uiWidth )
@@ -114,7 +118,7 @@ bool MakeDList( FT_Face face, char ch, float flHeight, GLuint list_base, GLuint*
 	glTranslatef( static_cast<GLfloat>( bitmap_glyph->left ), 0, 0 );
 	////Note: the cast to float is needed because signed int - unsigned int will cause the result to be incorrect.
 	////This causes the glyph to render off-screen. - Solokiller
-	glTranslatef( 0, face->size->metrics.height / 100.0 + -static_cast<GLfloat>( bitmap_glyph->top ), 0 );
+	glTranslatef( 0, face->size->metrics.height / 100.0f + -static_cast<GLfloat>( bitmap_glyph->top ), 0 );
 
 	float x = static_cast<float>( bitmap.width ) / uiWidth;
 	float y = static_cast<float>( bitmap.rows ) / uiHeight;
@@ -150,6 +154,10 @@ CFont* CFontManager::LoadFont( const char* pszFaceName, const unsigned int uiHei
 	if( auto pFont = FindFont( pszFaceName, uiHeight, uiWidth ) )
 		return pFont;
 
+	//TODO: implement the Linux version of this code. - Solokiller
+	return nullptr;
+#if 0
+#ifdef WIN32
 	HFONT hFont = CreateFontA( uiHeight, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, ANSI_CHARSET, 0, 0, 3, DEFAULT_PITCH | FF_DONTCARE, pszFaceName );
 
 	if( hFont == NULL )
@@ -166,6 +174,7 @@ CFont* CFontManager::LoadFont( const char* pszFaceName, const unsigned int uiHei
 	SelectObject( m_HDC, hOldObject );
 
 	DeleteObject( hFont );
+#endif
 
 	std::unique_ptr<std::remove_pointer<FT_Library>::type, FT_Error ( * )( FT_Library )> library( nullptr, FT_Done_FreeType );
 
@@ -225,5 +234,6 @@ CFont* CFontManager::LoadFont( const char* pszFaceName, const unsigned int uiHei
 			uiNumChars, list_base, std::move( textures ) ) );
 
 	return m_Fonts.back().get();
+#endif
 }
 }

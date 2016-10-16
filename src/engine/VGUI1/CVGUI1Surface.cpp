@@ -11,6 +11,7 @@
 #include "VGUI1/VGUI_FontPlat.h"
 
 #include "Engine.h"
+#include "Logging.h"
 
 #include "FileSystem2.h"
 
@@ -190,9 +191,9 @@ inline int NextP2( int iValue )
 	return rVal;
 }
 
-bool MakeDList( char ch, uchar* rgba, int a, int b, int c, float flHeight, GLuint list_base, GLuint* pTexBase, const int iX, const int iY )
+bool MakeDList( char ch, uchar* rgba, const unsigned int uiFontWidth, float flHeight, GLuint list_base, GLuint* pTexBase )
 {
-	const unsigned int uiDataWidth = b;
+	const unsigned int uiDataWidth = uiFontWidth;
 	const unsigned int uiDataHeight = static_cast<unsigned int>( flHeight );
 
 	const unsigned int uiWidth = NextP2( uiDataWidth );
@@ -281,11 +282,6 @@ void CVGUI1Surface::drawSetTextFont( vgui::Font* font )
 
 		auto plat = font->getPlat();
 
-		int iX = 0;
-		int iY = 0;
-
-		int a, b = 0, c;
-
 		const size_t uiNumChars = 256;
 
 		auto listBase = glGenLists( uiNumChars );
@@ -294,27 +290,52 @@ void CVGUI1Surface::drawSetTextFont( vgui::Font* font )
 
 		glGenTextures( uiNumChars, textures.get() );
 
-		for( int ch = 0; ch < uiNumChars; ++ch )
+#ifndef WIN32
+		if( plat->getTall() <= FONT_BITMAP_SIZE / 2 && plat->getWide() <= FONT_BITMAP_SIZE / 2 )
 		{
-			iX += b;
+#endif
 
-			plat->getCharABCwide( ch, a, b, c );
+			int a, b = 0, c;
 
-			//Skip unprintable characters. Note: the textures array zero initializes, so glDeleteTextures calls will be no-ops for these. - Solokiller
-			if( !isprint( ch ) )
-				continue;
-
-			//memset( g_FontRGBA, 0, sizeof( g_FontRGBA ) );
-
-			plat->getCharRGBA( ch, 0, iY, FONT_BITMAP_SIZE / 2, FONT_BITMAP_SIZE / 2, g_FontRGBA );
-
-			if( !MakeDList( ch, g_FontRGBA, a, b, c, static_cast<float>( plat->getTall() ), listBase, textures.get(), iX, iY ) )
+			for( int ch = 0; ch < uiNumChars; ++ch )
 			{
-				glDeleteLists( listBase, uiNumChars );
-				glDeleteTextures( uiNumChars, textures.get() );
-				return;
+				plat->getCharABCwide( ch, a, b, c );
+
+				//Skip unprintable characters. Note: the textures array zero initializes, so glDeleteTextures calls will be no-ops for these. - Solokiller
+				if( !isprint( ch ) )
+					continue;
+
+				//memset( g_FontRGBA, 0, sizeof( g_FontRGBA ) );
+
+				plat->getCharRGBA( ch, 0, 0, FONT_BITMAP_SIZE / 2, FONT_BITMAP_SIZE / 2, g_FontRGBA );
+
+				const unsigned int uiWidth = 
+	#ifdef WIN32
+					b
+	#else
+					plat->getWide()
+	#endif
+					;
+
+				if( !MakeDList( ch, g_FontRGBA, uiWidth, static_cast<float>( plat->getTall() ), listBase, textures.get() ) )
+				{
+					glDeleteLists( listBase, uiNumChars );
+					glDeleteTextures( uiNumChars, textures.get() );
+					return;
+				}
 			}
+
+#ifndef WIN32
 		}
+		else
+		{
+			//Sanity check. On Linux TrueType fonts don't work and return garbage from these 2 methods.
+			//We can't possibly detect this reliably, but this will prevent the game from freezing while loading.
+			//It'll load a blank font instead. - Solokiller
+			Msg( "CVGUI1Surface::drawSetTextFont: Font has invalid size (x:%d;y:%d)(probably a TrueType font on Linux; this is not supported!)\n",
+					plat->getWide(), plat->getTall() );
+		}
+#endif
 
 		auto vguiFont = std::make_unique<vgui::CFont>( font->getId(), static_cast<float>( font->getTall() ), uiNumChars, listBase, std::move( textures ) );
 
