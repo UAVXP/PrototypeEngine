@@ -1,3 +1,7 @@
+#include <algorithm>
+#include <cctype>
+#include <cstdint>
+
 #include <SDL2/SDL.h>
 
 #include <VGUI_Panel.h>
@@ -7,8 +11,7 @@
 
 #include "Engine.h"
 
-#include "font/CFont.h"
-#include "font/CFontManager.h"
+#include "VGUI1/font/CFont.h"
 #include "font/FontRendering.h"
 
 #include "CVGUI1Surface.h"
@@ -117,16 +120,151 @@ void CVGUI1Surface::drawOutlinedRect( int x0, int y0, int x1, int y1 )
 	glEnable( GL_TEXTURE_2D );
 }
 
+static const size_t FONT_BITMAP_SIZE = 1024;
+
+static uchar g_FontRGBA[ FONT_BITMAP_SIZE * FONT_BITMAP_SIZE ];
+
+inline int NextP2( int iValue )
+{
+	int rVal = 1;
+
+	while( rVal < iValue )
+		rVal <<= 1;
+
+	return rVal;
+}
+
+bool MakeDList( char ch, uchar* rgba, int a, int b, int c, float flHeight, GLuint list_base, GLuint* pTexBase, const int iX, const int iY )
+{
+	const unsigned int uiDataWidth = b;
+	const unsigned int uiDataHeight = static_cast<unsigned int>( flHeight );
+
+	const unsigned int uiWidth = NextP2( uiDataWidth );
+	const unsigned int uiHeight = NextP2( uiDataHeight );
+
+	auto expanded_data = std::make_unique<GLubyte[]>( 4 * uiWidth * uiHeight );
+
+	for( unsigned int uiRow = 0; uiRow < uiHeight; ++uiRow )
+	{
+		for( unsigned int uiCol = 0; uiCol < uiWidth; ++uiCol )
+		{
+			for( unsigned int uiChannel = 0; uiChannel < 4; ++uiChannel )
+			{
+				expanded_data[ 4 * ( uiCol + uiRow * uiWidth ) + uiChannel ] =
+					uiCol >= uiDataWidth || uiRow >= uiDataHeight ? 0 :
+					rgba[ 4 * ( uiCol + ( FONT_BITMAP_SIZE / 2 ) * uiRow ) + uiChannel ];
+			}
+		}
+	}
+
+	const size_t uiIndex = ch;
+
+	glBindTexture( GL_TEXTURE_2D, pTexBase[ uiIndex ] );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, uiWidth, uiHeight, 0,
+				  GL_RGBA, GL_UNSIGNED_BYTE, expanded_data.get() );
+
+	glNewList( list_base + uiIndex, GL_COMPILE );
+
+	glBindTexture( GL_TEXTURE_2D, pTexBase[ uiIndex ] );
+
+	glPushMatrix();
+
+	//glTranslatef( static_cast<GLfloat>( bitmap_glyph->left ), 0, 0 );
+	////Note: the cast to float is needed because signed int - unsigned int will cause the result to be incorrect.
+	////This causes the glyph to render off-screen. - Solokiller
+	//glTranslatef( 0, face->size->metrics.height / 100.0 + -static_cast<GLfloat>( bitmap_glyph->top ), 0 );
+
+	float x = static_cast<float>( uiDataWidth ) / uiWidth;
+	float y = static_cast<float>( uiDataHeight ) / uiHeight;
+
+	glBegin( GL_QUADS );
+	glTexCoord2d( 0, y );
+	glVertex2f( 0, static_cast<GLfloat>( uiDataHeight ) );
+
+	glTexCoord2d( 0, 0 );
+	glVertex2f( 0, 0 );
+
+	glTexCoord2d( x, 0 );
+	glVertex2f( static_cast<GLfloat>( uiDataWidth ), 0 );
+
+	glTexCoord2d( x, y );
+	glVertex2f( static_cast<GLfloat>( uiDataWidth ), static_cast<GLfloat>( uiDataHeight ) );
+
+	glEnd();
+
+	glPopMatrix();
+
+	//glTranslatef( static_cast<GLfloat>( face->glyph->advance.x >> 6 ), 0, 0 );
+
+	glEndList();
+
+	return true;
+}
+
 void CVGUI1Surface::drawSetTextFont( vgui::Font* font )
 {
 	if( font )
 	{
-		auto plat = static_cast<vgui::FontPlat*>( font->getPlat() );
+		auto it = std::find_if( m_Fonts.begin(), m_Fonts.end(), 
+			[ = ]( const auto& vguiFont )
+			{
+				return vguiFont->GetID() == font->getId();
+			}
+		);
 
-		auto pFont = g_FontManager.LoadFont( plat->m_szName, static_cast<unsigned int>( plat->m_iTall ), static_cast<unsigned int>( plat->m_iWidth ) );
+		if( it != m_Fonts.end() )
+		{
+			m_pActiveFont = it->get();
+			return;
+		}
 
-		if( pFont )
-			m_pActiveFont = pFont;
+		//New font, load it.
+
+		auto plat = font->getPlat();
+
+		int iX = 0;
+		int iY = 0;
+
+		int a, b = 0, c;
+
+		const size_t uiNumChars = 256;
+
+		auto listBase = glGenLists( uiNumChars );
+
+		auto textures = std::make_unique<GLuint[]>( uiNumChars );
+
+		glGenTextures( uiNumChars, textures.get() );
+
+		for( int ch = 0; ch < uiNumChars; ++ch )
+		{
+			iX += b;
+
+			plat->getCharABCwide( ch, a, b, c );
+
+			//Skip unprintable characters. Note: the textures array zero initializes, so glDeleteTextures calls will be no-ops for these. - Solokiller
+			if( !isprint( ch ) )
+				continue;
+
+			//memset( g_FontRGBA, 0, sizeof( g_FontRGBA ) );
+
+			plat->getCharRGBA( ch, 0, iY, FONT_BITMAP_SIZE / 2, FONT_BITMAP_SIZE / 2, g_FontRGBA );
+
+			if( !MakeDList( ch, g_FontRGBA, a, b, c, static_cast<float>( plat->getTall() ), listBase, textures.get(), iX, iY ) )
+			{
+				glDeleteLists( listBase, uiNumChars );
+				glDeleteTextures( uiNumChars, textures.get() );
+				return;
+			}
+		}
+
+		auto vguiFont = std::make_unique<vgui::CFont>( font->getId(), static_cast<float>( font->getTall() ), uiNumChars, listBase, std::move( textures ) );
+
+		m_Fonts.emplace_back( std::move( vguiFont ) );
+
+		m_pActiveFont = m_Fonts.back().get();
 	}
 	else
 	{
@@ -157,7 +295,38 @@ void CVGUI1Surface::drawPrintText( const char* text, int textLen )
 
 	glColor4ubv( m_TextDrawColor );
 
-	font::rendering::Print( *m_pActiveFont, static_cast<float>( m_iTextXPos ), static_cast<float>( m_iTextYPos ), text );
+	//glEnable( GL_TEXTURE_2D );
+	//
+	//glBindTexture( GL_TEXTURE_2D, m_pActiveFont->GetTextures()[ static_cast<unsigned int>( *text ) ] );
+	//
+	//float modelview_matrix[ 16 ];
+	//
+	//glGetFloatv( GL_MODELVIEW_MATRIX, modelview_matrix );
+	//
+	//glPushMatrix();
+	//glLoadIdentity();
+	//glTranslatef( static_cast<float>( m_iTextXPos ), static_cast<float>( m_iTextYPos ), 0 );
+	//glMultMatrixf( modelview_matrix );
+	//
+	//glBegin( GL_QUADS );
+	//glTexCoord2d( 0, 1 );
+	//glVertex2f( 0, 16 );
+	//
+	//glTexCoord2d( 0, 0 );
+	//glVertex2f( 0, 0 );
+	//
+	//glTexCoord2d( 1, 0 );
+	//glVertex2f( static_cast<GLfloat>( 8 ), 0 );
+	//
+	//glTexCoord2d( 1, 1 );
+	//glVertex2f( static_cast<GLfloat>( 8 ), static_cast<GLfloat>( 16 ) );
+	//
+	//glEnd();
+	//glPopMatrix();
+
+	font::rendering::PrintVGUI1( 
+		*m_pActiveFont, 
+		static_cast<float>( m_iTextXPos ), static_cast<float>( m_iTextYPos ), text );
 }
 
 void CVGUI1Surface::drawSetTextureRGBA( int id, const char* rgba, int wide, int tall )
@@ -250,6 +419,9 @@ void CVGUI1Surface::pushMakeCurrent( vgui::Panel* panel, bool useInsets )
 		static_cast<float>( iXOffset ), 
 		static_cast<float>( iYOffset ), 
 		0 );
+
+	m_iOffsets[ 0 ] = iXOffset;
+	m_iOffsets[ 1 ] = iYOffset;
 
 	glEnable( GL_SCISSOR_TEST );
 	glScissor( x, ( g_Video.GetHeight() - y ) - panel->getTall(), panel->getWide(), panel->getTall() );

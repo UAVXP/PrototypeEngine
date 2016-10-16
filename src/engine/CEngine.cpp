@@ -142,10 +142,12 @@ bool CEngine::Startup( IMetaLoader& loader, CreateInterfaceFn* pFactories, const
 		return false;
 	}
 
+	/*
 	g_pFont = g_FontManager.LoadFont( "Tahoma", 16, 0 );
 
 	if( !g_pFont )
 		return false;
+		*/
 
 	return true;
 }
@@ -257,9 +259,34 @@ void CEngine::CreateMainMenuBackground()
 		pImagePanel->setPos( iXOffsetScale * ( uiIndex % 4 ), iYOffsetScale * ( uiIndex / 4 ) );
 	}
 
-	auto pFont = new vgui::Font( "Arial", 16, 8, 0, 400, false, false, false, false );
+	//TODO: test code, remove. - Solokiller
+	std::unique_ptr<uint8_t[]> data;
 
-	auto pText = new vgui::Label( "Foobar", 0, 0 );
+	int size = 0;
+
+	FileHandle_t file = g_pFileSystem->Open( "gfx\\vgui\\fonts\\640_Scoreboard Title Text.tga", "rb" );
+
+	if( file != FILESYSTEM_INVALID_HANDLE )
+	{
+		size = g_pFileSystem->Size( file );
+
+		data = std::make_unique<uint8_t[]>( size );
+		
+		g_pFileSystem->Read( data.get(), size, file );
+
+		g_pFileSystem->Close( file );
+	}
+
+	auto pFont = new vgui::Font( "Arial", data.get(), size, 16, 8, 0, 400, false, false, false, false );
+
+	std::string szString = "Foobar\n";
+
+	for( char ch = 'A'; ch <= 'Z'; ++ch )
+		szString += ch;
+
+	szString = "Here comes another essay length post!\nfont layout across multiple lines\n\t\tusing tabulation";
+
+	auto pText = new vgui::Label( szString.c_str(), 0, 0 );
 
 	pText->setParent( m_pRootPanel );
 
@@ -275,6 +302,9 @@ void CEngine::CreateMainMenuBackground()
 
 	pText->setFont( pFont );
 	pText2->setFont( pFont );
+
+	pText->setText( szString.c_str() );
+	pText2->setText( "Foobar" );
 }
 
 void CEngine::RenderFrame()
@@ -315,7 +345,7 @@ void CEngine::RenderVGUI1()
 
 	//glRectf( 0, 0, 100, 100 );
 	
-	font::rendering::Print( *g_pFont, 100, 100, "Test string foo\nLine 2" );
+	//font::rendering::Print( *g_pFont, 100, 100, "Test string foo\nLine 2" );
 	
 	//SDL_GL_SwapWindow( g_Video.GetWindow() );
 }

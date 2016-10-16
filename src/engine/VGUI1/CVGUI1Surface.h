@@ -1,17 +1,20 @@
 #ifndef ENGINE_VGUI1_CVGUI1SURFACE_H
 #define ENGINE_VGUI1_CVGUI1SURFACE_H
 
+#include <memory>
+#include <vector>
+
 #include <GL/glew.h>
 
 #include <VGUI_SurfaceBase.h>
 
-namespace font
-{
-class CFont;
-}
+#include "VGUI1/font/CFont.h"
 
 class CVGUI1Surface : public vgui::SurfaceBase
 {
+private:
+	typedef std::vector<std::unique_ptr<vgui::CFont>> Fonts_t;
+
 public:
 	using SurfaceBase::SurfaceBase;
 
@@ -44,11 +47,15 @@ public:
 	void applyChanges() override;
 
 private:
+	int m_iOffsets[ 2 ] = { 0, 0 };
+
 	GLuint m_CurrentTexture = 0;
 
 	uchar m_DrawColor[ 4 ];
 
-	font::CFont* m_pActiveFont = nullptr;
+	Fonts_t m_Fonts;
+
+	vgui::CFont* m_pActiveFont = nullptr;
 
 	uchar m_TextDrawColor[ 4 ] = { 255, 255, 255, 255 };
 

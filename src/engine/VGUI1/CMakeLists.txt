@@ -9,3 +9,5 @@ add_sources(
 	VGUI_RDBitmapTGA.h
 	VGUI_RDBitmapTGA.cpp
 )
+
+add_subdirectory( font )
