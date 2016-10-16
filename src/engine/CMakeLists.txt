@@ -97,9 +97,11 @@ find_library( SDL2 ${SDL2_NAME} PATHS ${CMAKE_SOURCE_DIR}/external/SDL2/lib/ "${
 
 find_library( GLEW2 glew32s ${CMAKE_SHARED_LIBRARY_PREFIX}GLEW${CMAKE_STATIC_LIBRARY_SUFFIX} PATHS ${CMAKE_SOURCE_DIR}/external/GLEW/lib/ )
 
-find_library( FREETYPE freetype27ST PATHS ${CMAKE_SOURCE_DIR}/external/FREETYPE/lib/ )
+#On Linux there is no debug version, so use the same one for both.
+#Make sure not to link with freetype libs in /usr to avoid version conflicts.
+find_library( FREETYPE freetype27ST libfreetype.a PATHS ${CMAKE_SOURCE_DIR}/external/FREETYPE/lib/ NO_DEFAULT_PATH )
 
-find_library( FREETYPE_DEBUG freetype27STd PATHS ${CMAKE_SOURCE_DIR}/external/FREETYPE/lib/ )
+find_library( FREETYPE_DEBUG freetype27STd libfreetype.a PATHS ${CMAKE_SOURCE_DIR}/external/FREETYPE/lib/ NO_DEFAULT_PATH )
 
 #Link with engine dependencies
 target_link_libraries( Engine 
