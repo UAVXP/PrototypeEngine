@@ -291,7 +291,8 @@ void CVGUI1Surface::drawSetTextFont( vgui::Font* font )
 		glGenTextures( uiNumChars, textures.get() );
 
 #ifndef WIN32
-		if( plat->getTall() <= FONT_BITMAP_SIZE / 2 && plat->getWide() <= FONT_BITMAP_SIZE / 2 )
+		if( plat->getTall() <= FONT_BITMAP_SIZE / 2 && plat->getTall() > 0 && 
+			plat->getWide() <= FONT_BITMAP_SIZE / 2 && plat->getWide() > 0 )
 		{
 #endif
 
