@@ -1,5 +1,7 @@
 #include <cassert>
 
+#include "Platform.h"
+
 #include "StringUtils.h"
 
 const char* strnstr( const char* pszString, const char* pszSubString, const size_t uiLength )
@@ -97,4 +99,27 @@ bool UTIL_TokenMatches( const char* pszString, const char* pszToken )
 	}
 
 	return true;
+}
+
+char* UTIL_FixSlashes( char* pszPath )
+{
+	if( !pszPath )
+		return nullptr;
+
+	for( char* pszPos = pszPath; *pszPos; ++pszPos )
+	{
+		if( *pszPos == FILESYSTEM_OTHER_PATH_SEPARATOR_CHAR )
+			*pszPos = FILESYSTEM_PATH_SEPARATOR_CHAR;
+	}
+
+	return pszPath;
+}
+
+char* UTIL_SafeStrncpy( char* pszDest, const char* pszSource, const size_t uiSizeInCharacters )
+{
+	strncpy( pszDest, pszSource, uiSizeInCharacters );
+
+	pszDest[ uiSizeInCharacters - 1 ] = '\0';
+
+	return pszDest;
 }

@@ -85,4 +85,11 @@ const char* strnrstr( const char* pszString, const char* pszSubString, const siz
 */
 bool UTIL_TokenMatches( const char* pszString, const char* pszToken );
 
+/**
+*	Fixes slashes to use the correct platform specific slashes.
+*/
+char* UTIL_FixSlashes( char* pszPath );
+
+char* UTIL_SafeStrncpy( char* pszDest, const char* pszSource, const size_t uiSizeInCharacters );
+
 #endif //STDLIB_STRINGUTILS_H

@@ -108,8 +108,6 @@ extern LogLevel g_LogLevel;
 
 void Log( const LogLevel log, const char* const pszFormat, ... );
 
-char* FixSlashes( char* pszPath );
-
 enum class QuestionAction
 {
 	ASKAGAIN = 0,

@@ -103,20 +103,6 @@ private:
 	CRedirectOutput& operator=( const CRedirectOutput& ) = delete;
 };
 
-char* FixSlashes( char* pszPath )
-{
-	if( !pszPath )
-		return nullptr;
-
-	for( char* pszPos = pszPath; *pszPos; ++pszPos )
-	{
-		if( *pszPos == FILESYSTEM_OTHER_PATH_SEPARATOR_CHAR )
-			*pszPos = FILESYSTEM_PATH_SEPARATOR_CHAR;
-	}
-
-	return pszPath;
-}
-
 QuestionAction AskYNQuestion( const char* const pszQuestion )
 {
 	Log( LogLevel::ALWAYS, "%s\nEnter Y/N: ", pszQuestion );

@@ -41,7 +41,13 @@ bool CFileSystem::RemoveSearchPath( const char *pPath )
 	if( !pPath )
 		return false;
 
-	auto it = FindSearchPath( pPath );
+	char szPath[ MAX_PATH ];
+
+	UTIL_SafeStrncpy( szPath, pPath, sizeof( szPath ) );
+
+	UTIL_FixSlashes( szPath );
+
+	auto it = FindSearchPath( szPath );
 
 	if( it == m_SearchPaths.end() )
 		return false;
@@ -50,7 +56,7 @@ bool CFileSystem::RemoveSearchPath( const char *pPath )
 	{
 		m_SearchPaths.erase( it );
 
-		it = FindSearchPath( pPath );
+		it = FindSearchPath( szPath );
 	}
 	while( it != m_SearchPaths.end() );
 
@@ -61,6 +67,12 @@ void CFileSystem::RemoveFile( const char *pRelativePath, const char *pathID )
 {
 	if( !pRelativePath )
 		return;
+
+	char szPath[ MAX_PATH ];
+
+	UTIL_SafeStrncpy( szPath, pRelativePath, sizeof( szPath ) );
+
+	UTIL_FixSlashes( szPath );
 
 	fs::path path;
 
@@ -74,7 +86,7 @@ void CFileSystem::RemoveFile( const char *pRelativePath, const char *pathID )
 		if( pathID && ( !searchPath->pszPathID || strcmp( pathID, searchPath->pszPathID ) != 0 ) )
 			continue;
 
-		path = fs::path( searchPath->szPath ) / pRelativePath;
+		path = fs::path( searchPath->szPath ) / szPath;
 
 		if( fs::remove( path, error ) )
 			break;
@@ -86,6 +98,12 @@ void CFileSystem::CreateDirHierarchy( const char *path, const char *pathID )
 	if( !path )
 		return;
 
+	char szPath[ MAX_PATH ];
+
+	UTIL_SafeStrncpy( szPath, path, sizeof( szPath ) );
+
+	UTIL_FixSlashes( szPath );
+
 	for( const auto& searchPath : m_SearchPaths )
 	{
 		if( searchPath->flags & SearchPathFlag::READ_ONLY )
@@ -96,7 +114,7 @@ void CFileSystem::CreateDirHierarchy( const char *path, const char *pathID )
 
 		std::error_code error;
 
-		fs::path directories = fs::path( searchPath->szPath ) / path;
+		fs::path directories = fs::path( searchPath->szPath ) / szPath;
 
 		fs::create_directories( directories, error );
 
@@ -113,7 +131,7 @@ void CFileSystem::CreateDirHierarchy( const char *path, const char *pathID )
 
 			std::error_code error;
 
-			fs::path directories = fs::path( searchPath->szPath ) / path;
+			fs::path directories = fs::path( searchPath->szPath ) / szPath;
 
 			fs::create_directories( directories, error );
 
@@ -127,13 +145,19 @@ bool CFileSystem::FileExists( const char *pFileName )
 	if( !pFileName )
 		return false;
 
+	char szPath[ MAX_PATH ];
+
+	UTIL_SafeStrncpy( szPath, pFileName, sizeof( szPath ) );
+
+	UTIL_FixSlashes( szPath );
+
 	fs::path path;
 
 	std::error_code error;
 
 	for( const auto& searchPath : m_SearchPaths )
 	{
-		path = fs::path( searchPath->szPath ) / pFileName;
+		path = fs::path( searchPath->szPath ) / szPath;
 
 		if( fs::exists( path, error ) )
 		{
@@ -149,13 +173,19 @@ bool CFileSystem::IsDirectory( const char *pFileName )
 	if( !pFileName )
 		return false;
 
+	char szPath[ MAX_PATH ];
+
+	UTIL_SafeStrncpy( szPath, pFileName, sizeof( szPath ) );
+
+	UTIL_FixSlashes( szPath );
+
 	fs::path path;
 
 	std::error_code error;
 
 	for( const auto& searchPath : m_SearchPaths )
 	{
-		path = fs::path( searchPath->szPath ) / pFileName;
+		path = fs::path( searchPath->szPath ) / szPath;
 
 		if( fs::is_directory( path, error ) )
 			return true;
@@ -168,6 +198,12 @@ FileHandle_t CFileSystem::Open( const char *pFileName, const char *pOptions, con
 {
 	if( !pFileName || !pOptions )
 		return FILESYSTEM_INVALID_HANDLE;
+
+	char szPath[ MAX_PATH ];
+
+	UTIL_SafeStrncpy( szPath, pFileName, sizeof( szPath ) );
+
+	UTIL_FixSlashes( szPath );
 
 	if( !strchr( pOptions, 'r' ) || strchr( pOptions, '+' ) )
 	{
@@ -186,7 +222,7 @@ FileHandle_t CFileSystem::Open( const char *pFileName, const char *pOptions, con
 			if( pathID && ( !searchPath->pszPathID || strcmp( pathID, searchPath->pszPathID ) != 0 ) )
 				continue;
 
-			auto path = fs::path( searchPath->szPath ) / pFileName;
+			auto path = fs::path( searchPath->szPath ) / szPath;
 
 			path.make_preferred();
 
@@ -211,7 +247,7 @@ FileHandle_t CFileSystem::Open( const char *pFileName, const char *pOptions, con
 		if( pathID && ( !searchPath->pszPathID || strcmp( pathID, searchPath->pszPathID ) != 0 ) )
 			continue;
 
-		if( auto pFileHandle = FindFile( *searchPath, pFileName, pOptions ) )
+		if( auto pFileHandle = FindFile( *searchPath, szPath, pOptions ) )
 			return reinterpret_cast<FileHandle_t>( pFileHandle );
 	}
 
@@ -628,13 +664,19 @@ const char *CFileSystem::GetLocalPath( const char *pFileName, char *pLocalPath, 
 	if( !pLocalPath || localPathBufferSize <= 0 )
 		return nullptr;
 
+	char szPath[ MAX_PATH ];
+
+	UTIL_SafeStrncpy( szPath, pFileName, sizeof( szPath ) );
+
+	UTIL_FixSlashes( szPath );
+
 	fs::path path;
 
 	std::error_code error;
 
 	for( const auto& searchPath : m_SearchPaths )
 	{
-		path = fs::path( searchPath->szPath ) / pFileName;
+		path = fs::path( searchPath->szPath ) / szPath;
 
 		if( fs::exists( path, error ) )
 		{
@@ -919,9 +961,15 @@ FileHandle_t CFileSystem::OpenFromCacheForRead( const char *pFileName, const cha
 	if( !pFileName || !pOptions )
 		return FILESYSTEM_INVALID_HANDLE;
 
+	char szPath[ MAX_PATH ];
+
+	UTIL_SafeStrncpy( szPath, pFileName, sizeof( szPath ) );
+
+	UTIL_FixSlashes( szPath );
+
 	if( strchr( pOptions, 'w' ) || strchr( pOptions, '+' ) )
 	{
-		Warning( FILESYSTEM_WARNING_CRITICAL, "CFileSystem::OpenFromCacheForRead: Tried to open file \"%s\" with write option!\n", pFileName );
+		Warning( FILESYSTEM_WARNING_CRITICAL, "CFileSystem::OpenFromCacheForRead: Tried to open file \"%s\" with write option!\n", szPath );
 		return FILESYSTEM_INVALID_HANDLE;
 	}
 
@@ -933,7 +981,7 @@ FileHandle_t CFileSystem::OpenFromCacheForRead( const char *pFileName, const cha
 		if( pathID && ( !searchPath->pszPathID || strcmp( pathID, searchPath->pszPathID ) != 0 ) )
 			continue;
 
-		if( auto pFileHandle = FindFile( *searchPath, pFileName, pOptions ) )
+		if( auto pFileHandle = FindFile( *searchPath, szPath, pOptions ) )
 			return reinterpret_cast<FileHandle_t>( pFileHandle );
 	}
 
@@ -1050,13 +1098,25 @@ uint64_t CFileSystem::Size64( const char *pFileName )
 	if( !pFileName )
 		return -1;
 
+	char szPath[ MAX_PATH ];
+
+	UTIL_SafeStrncpy( szPath, pFileName, sizeof( szPath ) );
+
+	UTIL_FixSlashes( szPath );
+
 	std::error_code error;
 
-	return fs::file_size( pFileName, error );
+	return fs::file_size( szPath, error );
 }
 
 int64_t CFileSystem::GetFileTimeEx( const char *pFileName )
 {
+	char szPath[ MAX_PATH ];
+
+	UTIL_SafeStrncpy( szPath, pFileName, sizeof( szPath ) );
+
+	UTIL_FixSlashes( szPath );
+
 	fs::path path;
 
 	std::error_code error;
@@ -1065,7 +1125,7 @@ int64_t CFileSystem::GetFileTimeEx( const char *pFileName )
 	{
 		if( searchPath->IsPackFile() )
 		{
-			auto it = searchPath->packEntries.find( pFileName );
+			auto it = searchPath->packEntries.find( szPath );
 
 			if( it != searchPath->packEntries.end() )
 			{
@@ -1075,7 +1135,7 @@ int64_t CFileSystem::GetFileTimeEx( const char *pFileName )
 		}
 		else
 		{
-			path = fs::path( searchPath->szPath ) / pFileName;
+			path = fs::path( searchPath->szPath ) / szPath;
 
 			if( fs::exists( path, error ) )
 			{
@@ -1124,13 +1184,19 @@ const char *CFileSystem::FindFirstEx( const char *pWildCard, FileFindHandle_t *p
 	if( !pWildCard || !pHandle )
 		return nullptr;
 
+	char szPath[ MAX_PATH ];
+
+	UTIL_SafeStrncpy( szPath, pWildCard, sizeof( szPath ) );
+
+	UTIL_FixSlashes( szPath );
+
 	FindFileData data;
 
 	//Note: Not the same constant! - Solokiller
 	if( flags & FileSystemFindFlag::SKIP_IDENTICAL_PATHS )
 		data.flags |= FindFileFlag::SKIP_IDENTICAL_PATHS;
 
-	data.szFilter = std::move( fs::path( pWildCard ).make_preferred().u8string() );
+	data.szFilter = std::move( fs::path( szPath ).make_preferred().u8string() );
 
 	if( pathID )
 	{
@@ -1170,7 +1236,13 @@ bool CFileSystem::FullPathToRelativePathEx( const char *pFullpath, char *pRelati
 		return false;
 	}
 
-	std::string szFullpath = fs::path( pFullpath ).make_preferred().u8string();
+	char szPath[ MAX_PATH ];
+
+	UTIL_SafeStrncpy( szPath, pFullpath, sizeof( szPath ) );
+
+	UTIL_FixSlashes( szPath );
+
+	std::string szFullpath = fs::path( szPath ).make_preferred().u8string();
 
 	for( auto it = m_SearchPaths.begin(), end = m_SearchPaths.end(); it != end; ++it )
 	{
@@ -1250,14 +1322,20 @@ bool CFileSystem::AddSearchPath( const char *pPath, const char *pathID, const bo
 		return false;
 	}
 
+	char szPath[ MAX_PATH ];
+
+	UTIL_SafeStrncpy( szPath, pPath, sizeof( szPath ) );
+
+	UTIL_FixSlashes( szPath );
+
 	//Despite the documentation stating that bsp files are supported, the filesystem doesn't actually support it. Sorry. - Solokiller
-	if( strstr( pPath, ".bsp" ) )
+	if( strstr( szPath, ".bsp" ) )
 		return false;
 
-	if( FindSearchPath( pPath, true, pathID ) != m_SearchPaths.end() )
+	if( FindSearchPath( szPath, true, pathID ) != m_SearchPaths.end() )
 		return false;
 
-	fs::path osPath( pPath );
+	fs::path osPath( szPath );
 
 	//Convert all search paths to the absolute representation, fully resolved.
 	std::error_code error;
@@ -1267,7 +1345,7 @@ bool CFileSystem::AddSearchPath( const char *pPath, const char *pathID, const bo
 	//Don't want to add empty paths when non-existent search paths are added.
 	if( error || osPath.empty() )
 	{
-		Warning( FILESYSTEM_WARNING_CRITICAL, "CFileSystem::AddSearchPath: Couldn't convert path \"%s\" to its canonial representation\n", pPath );
+		Warning( FILESYSTEM_WARNING_CRITICAL, "CFileSystem::AddSearchPath: Couldn't convert path \"%s\" to its canonial representation\n", szPath );
 		return false;
 	}
 
@@ -1361,7 +1439,13 @@ bool CFileSystem::AddPackFile( const char* pszFullPath, const char* pszPathID, c
 	if( !pszFullPath )
 		return false;
 
-	CFileHandle file( *this, pszFullPath, "rb", true );
+	char szPath[ MAX_PATH ];
+
+	UTIL_SafeStrncpy( szPath, pszFullPath, sizeof( szPath ) );
+
+	UTIL_FixSlashes( szPath );
+
+	CFileHandle file( *this, szPath, "rb", true );
 
 	if( !file.IsOpen() )
 		return false;
@@ -1376,7 +1460,7 @@ bool CFileSystem::AddPackFile( const char* pszFullPath, const char* pszPathID, c
 
 		if( fread( &header, sizeof( header ), 1, file.GetFile() ) != 1 )
 		{
-			Warning( FILESYSTEM_WARNING_CRITICAL, "CFileSystem::AddPackFile: Failed to read pack append header for pack file \"%s\"!\n", pszFullPath );
+			Warning( FILESYSTEM_WARNING_CRITICAL, "CFileSystem::AddPackFile: Failed to read pack append header for pack file \"%s\"!\n", szPath );
 			return false;
 		}
 
@@ -1386,7 +1470,7 @@ bool CFileSystem::AddPackFile( const char* pszFullPath, const char* pszPathID, c
 		}
 	}
 
-	return PreparePackFile( pszFullPath, pszPathID, file, iOffset );
+	return PreparePackFile( szPath, pszPathID, file, iOffset );
 }
 
 void CFileSystem::AddPackFiles( const char* pszPath )
