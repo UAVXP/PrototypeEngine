@@ -2,19 +2,75 @@
 #include <cctype>
 #include <cstdint>
 
-#include <SDL2/SDL.h>
-
 #include <VGUI_Panel.h>
 #include <VGUI_Font.h>
 #include <VGUI_BaseFontPlat.h>
+#include <VGUI_BitmapTGA.h>
+#include <VGUI_FileInputStream.h>
+#include <VGUI_ImagePanel.h>
 #include "VGUI1/VGUI_FontPlat.h"
 
 #include "Engine.h"
+
+#include "FileSystem2.h"
 
 #include "VGUI1/font/CFont.h"
 #include "font/FontRendering.h"
 
 #include "CVGUI1Surface.h"
+
+SDL_Cursor* CVGUI1Surface::m_Cursors[ 20 ] = {};
+
+CVGUI1Surface::CVGUI1Surface( vgui::Panel* embeddedPanel )
+	: vgui::SurfaceBase( embeddedPanel )
+{
+	char szPath[ MAX_PATH ];
+
+	if( g_pFileSystem->GetLocalPath( "gfx/vgui/mouse.tga", szPath, sizeof( szPath ) ) )
+	{
+		vgui::FileInputStream stream( szPath, false );
+
+		m_pEmulatedMouseImage = new vgui::BitmapTGA( &stream, true );
+
+		stream.close();
+	}
+
+	if( !SDL_WasInit( SDL_INIT_VIDEO ) )
+	{
+		SDL_SetHint( "SDL_VIDEO_X11_XRANDR", "1" );
+		SDL_SetHint( "SDL_VIDEO_X11_XVIDMODE", "1" );
+		SDL_InitSubSystem( SDL_INIT_VIDEO );
+	}
+
+	for( int iCursor = SDL_SYSTEM_CURSOR_ARROW; iCursor < SDL_NUM_SYSTEM_CURSORS; ++iCursor )
+	{
+		m_Cursors[ iCursor + 2 ] = SDL_CreateSystemCursor( static_cast<SDL_SystemCursor>( SDL_SYSTEM_CURSOR_ARROW + iCursor ) );
+	}
+
+	m_pCursor = m_Cursors[ SDL_SYSTEM_CURSOR_ARROW + 2 ];
+
+	m_bCursorVisible = true;
+}
+
+CVGUI1Surface::~CVGUI1Surface()
+{
+	m_pCursor = nullptr;
+
+	for( auto& pCursor : m_Cursors )
+	{
+		if( pCursor )
+		{
+			SDL_FreeCursor( pCursor );
+			pCursor = nullptr;
+		}
+	}
+
+	if( m_pEmulatedMouseImage )
+	{
+		delete m_pEmulatedMouseImage;
+		m_pEmulatedMouseImage = nullptr;
+	}
+}
 
 void CVGUI1Surface::setTitle( const char* title )
 {
@@ -295,35 +351,6 @@ void CVGUI1Surface::drawPrintText( const char* text, int textLen )
 
 	glColor4ubv( m_TextDrawColor );
 
-	//glEnable( GL_TEXTURE_2D );
-	//
-	//glBindTexture( GL_TEXTURE_2D, m_pActiveFont->GetTextures()[ static_cast<unsigned int>( *text ) ] );
-	//
-	//float modelview_matrix[ 16 ];
-	//
-	//glGetFloatv( GL_MODELVIEW_MATRIX, modelview_matrix );
-	//
-	//glPushMatrix();
-	//glLoadIdentity();
-	//glTranslatef( static_cast<float>( m_iTextXPos ), static_cast<float>( m_iTextYPos ), 0 );
-	//glMultMatrixf( modelview_matrix );
-	//
-	//glBegin( GL_QUADS );
-	//glTexCoord2d( 0, 1 );
-	//glVertex2f( 0, 16 );
-	//
-	//glTexCoord2d( 0, 0 );
-	//glVertex2f( 0, 0 );
-	//
-	//glTexCoord2d( 1, 0 );
-	//glVertex2f( static_cast<GLfloat>( 8 ), 0 );
-	//
-	//glTexCoord2d( 1, 1 );
-	//glVertex2f( static_cast<GLfloat>( 8 ), static_cast<GLfloat>( 16 ) );
-	//
-	//glEnd();
-	//glPopMatrix();
-
 	font::rendering::PrintVGUI1( 
 		*m_pActiveFont, 
 		static_cast<float>( m_iTextXPos ), static_cast<float>( m_iTextYPos ), text );
@@ -380,7 +407,57 @@ void CVGUI1Surface::enableMouseCapture( bool state )
 
 void CVGUI1Surface::setCursor( vgui::Cursor* cursor )
 {
-	//TODO
+	if( !cursor || m_bCursorLocked )
+		return;
+
+	_currentCursor = cursor;
+
+	const auto cursorID = cursor->getDefaultCursor();
+
+	const auto bWasVisible = m_bCursorVisible;
+
+	m_bCursorVisible = cursorID != vgui::Cursor::dc_none;
+
+	_emulatedCursor->setImage( m_pEmulatedMouseImage );
+
+	if( m_bCursorVisible )
+	{
+		if( cursorID >= vgui::Cursor::dc_none && cursorID < vgui::Cursor::dc_last )
+		{
+			m_pCursor = m_Cursors[ cursor->getDefaultCursor() ];
+		}
+	}
+
+	if( m_bCursorVisible )
+		SDL_SetCursor( m_pCursor );
+
+	//TODO: need to revisit this when SDL stuff gets implemented more. - Solokiller
+
+	if( !m_bCursorLocked )
+	{
+		if( !m_bCursorVisible && bWasVisible )
+		{
+			if( /*m_rawinput.value && BUsesSDLInput() */ false )
+				SDL_SetRelativeMouseMode( SDL_TRUE );
+			else
+				SDL_ShowCursor( false );
+		}
+
+		if( m_bCursorVisible && !bWasVisible )
+		{
+			if( /*m_rawinput.value && BUsesSDLInput() */ false )
+				SDL_SetRelativeMouseMode( SDL_FALSE );
+			else
+				SDL_ShowCursor( true );
+		}
+
+		SDL_PumpEvents();
+
+		//Reset the relative mouse state so raw input works properly. - Solokiller
+		int x, y;
+
+		SDL_GetRelativeMouseState( &x, &y );
+	}
 }
 
 void CVGUI1Surface::swapBuffers()

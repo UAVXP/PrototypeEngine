@@ -6,9 +6,16 @@
 
 #include <GL/glew.h>
 
+#include <SDL2/SDL.h>
+
 #include <VGUI_SurfaceBase.h>
 
 #include "VGUI1/font/CFont.h"
+
+namespace vgui
+{
+class BitmapTGA;
+}
 
 class CVGUI1Surface : public vgui::SurfaceBase
 {
@@ -16,7 +23,8 @@ private:
 	typedef std::vector<std::unique_ptr<vgui::CFont>> Fonts_t;
 
 public:
-	using SurfaceBase::SurfaceBase;
+	CVGUI1Surface( vgui::Panel* embeddedPanel );
+	~CVGUI1Surface();
 
 	void setTitle( const char* title ) override;
 	bool setFullscreenMode( int wide, int tall, int bpp ) override;
@@ -61,6 +69,16 @@ private:
 
 	int m_iTextXPos = 0;
 	int m_iTextYPos = 0;
+
+	vgui::BitmapTGA* m_pEmulatedMouseImage = nullptr;
+
+	static SDL_Cursor* m_Cursors[ 20 ];
+
+	SDL_Cursor* m_pCursor = nullptr;
+
+	bool m_bCursorVisible = false;
+
+	bool m_bCursorLocked = false;
 };
 
 #endif //ENGINE_VGUI1_CVGUI1SURFACE_H
