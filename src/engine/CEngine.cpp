@@ -31,8 +31,6 @@
 
 #include "CEngine.h"
 
-font::CFont* g_pFont = nullptr;
-
 EXPOSE_SINGLE_INTERFACE_GLOBALVAR( CEngine, IMetaTool, DEFAULT_IMETATOOL_NAME, g_Engine );
 
 void CEngine::SetMyGameDir( const char* const pszGameDir )
@@ -142,13 +140,6 @@ bool CEngine::Startup( IMetaLoader& loader, CreateInterfaceFn* pFactories, const
 		return false;
 	}
 
-	/*
-	g_pFont = g_FontManager.LoadFont( "Tahoma", 16, 0 );
-
-	if( !g_pFont )
-		return false;
-		*/
-
 	return true;
 }
 
@@ -225,39 +216,11 @@ bool CEngine::HostInit()
 
 void CEngine::CreateMainMenuBackground()
 {
-	auto pBackground = new vgui::Panel();
-
-	pBackground->setParent( m_pRootPanel );
-
 	int wide, tall;
-	
+
 	m_pRootPanel->getSize( wide, tall );
 
-	pBackground->setSize( wide, tall );
-
-	const float flXScale = g_Video.GetWidth() / 800.0f;
-	const float flYScale = g_Video.GetHeight() / 600.0f;
-	const int iXOffsetScale = static_cast<int>( ceil( 256 * flXScale ) );
-	const int iYOffsetScale = static_cast<int>( ceil( 256 * flYScale ) );
-
-	char szFileName[ MAX_PATH ];
-
-	for( size_t uiIndex = 0; uiIndex < 4 * 3; ++uiIndex )
-	{
-		snprintf( szFileName, sizeof( szFileName ), "resource/background/800_%u_%c_loading.tga", ( uiIndex / 4 ) + 1, 'a' + ( uiIndex % 4 ) );
-
-		auto pImage = static_cast<vgui::RDBitmapTGA*>( vgui_LoadTGA( szFileName, true, true ) );
-
-		//Resize the images so they fit the default resolution better. The resolution scaling will take care of the rest. - Solokiller
-		pImage->SetXScale( 640 / 800.0f );
-		pImage->SetYScale( 480 / 600.0f );
-
-		auto pImagePanel = new vgui::ImagePanel( pImage );
-
-		pImagePanel->setParent( pBackground );
-
-		pImagePanel->setPos( iXOffsetScale * ( uiIndex % 4 ), iYOffsetScale * ( uiIndex / 4 ) );
-	}
+	m_MainMenu = std::make_unique<CMainMenu>( m_pRootPanel, 0, 0, wide, tall );
 
 	//TODO: test code, remove. - Solokiller
 	std::unique_ptr<uint8_t[]> data;
@@ -346,8 +309,6 @@ void CEngine::RenderVGUI1()
 	glPopMatrix();
 
 	//glRectf( 0, 0, 100, 100 );
-	
-	//font::rendering::Print( *g_pFont, 100, 100, "Test string foo\nLine 2" );
 	
 	//SDL_GL_SwapWindow( g_Video.GetWindow() );
 }

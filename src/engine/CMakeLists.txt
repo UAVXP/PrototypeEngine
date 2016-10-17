@@ -47,6 +47,7 @@ add_subdirectory( ${CMAKE_SOURCE_DIR}/src/steam steam )
 add_subdirectory( ${CMAKE_SOURCE_DIR}/src/common common )
 add_subdirectory( console )
 add_subdirectory( font )
+add_subdirectory( ui )
 add_subdirectory( VGUI1 )
 
 preprocess_sources()

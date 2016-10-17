@@ -1,9 +1,13 @@
 #ifndef ENGINE_CENGINE_H
 #define ENGINE_CENGINE_H
 
+#include <memory>
+
 #include "Platform.h"
 
 #include "lib/CLibrary.h"
+
+#include "ui/vgui1/CMainMenu.h"
 
 #include "IMetaTool.h"
 
@@ -56,6 +60,8 @@ private:
 	bool m_bSteamAPIInitialized = false;
 
 	vgui::Panel* m_pRootPanel = nullptr;
+
+	std::unique_ptr<CMainMenu> m_MainMenu;
 
 private:
 	CEngine( const CEngine& ) = delete;
