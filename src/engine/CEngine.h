@@ -16,6 +16,8 @@ namespace vgui
 class Panel;
 }
 
+class CSchemeManager;
+
 class CEngine final : public IMetaTool
 {
 public:
@@ -28,6 +30,10 @@ public:
 	const char* GetMyGameDir() const { return m_szMyGameDir; }
 
 	IMetaLoader* GetLoader() { return m_pLoader; }
+
+	CSchemeManager* GetSchemeManager() { return m_pSchemeManager; }
+
+	vgui::Panel* GetRootPanel() { return m_pRootPanel; }
 
 	void SetMyGameDir( const char* const pszGameDir );
 
@@ -58,6 +64,8 @@ private:
 	CLibrary m_steam_api;
 
 	bool m_bSteamAPIInitialized = false;
+
+	CSchemeManager* m_pSchemeManager = nullptr;
 
 	vgui::Panel* m_pRootPanel = nullptr;
 

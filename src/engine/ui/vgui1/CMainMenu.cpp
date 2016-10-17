@@ -5,6 +5,8 @@
 #include "VGUI1/VGUI_RDBitmapTGA.h"
 #include "VGUI1/vgui_loadtga.h"
 
+#include "COptionsDialog.h"
+
 #include "Engine.h"
 
 #include "CMainMenu.h"
@@ -19,6 +21,8 @@ public:
 
 	void actionPerformed( vgui::Panel* panel ) override
 	{
+		auto pDialog = m_pMainMenu->CreateOptionsDialog();
+		pDialog->CenterOnParent();
 	}
 
 private:
@@ -76,6 +80,14 @@ CMainMenu::CMainMenu( vgui::Panel* pRoot, int x, int y, int wide, int tall )
 
 CMainMenu::~CMainMenu()
 {
+}
+
+COptionsDialog* CMainMenu::CreateOptionsDialog()
+{
+	if( !m_pOptionsDialog )
+		m_pOptionsDialog = new COptionsDialog( g_Engine.GetRootPanel(), 0, 0, 400, 300 );
+
+	return m_pOptionsDialog;
 }
 
 void CMainMenu::CreateBackground()

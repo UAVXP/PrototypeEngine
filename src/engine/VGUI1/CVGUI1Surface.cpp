@@ -497,9 +497,9 @@ void CVGUI1Surface::pushMakeCurrent( vgui::Panel* panel, bool useInsets )
 
 	glLoadIdentity();
 
-	int x, y;
+	int x, y, x2, y2;
 
-	panel->getPos( x, y );
+	panel->getAbsExtents( x, y, x2, y2 );
 
 	int iXOffset = x;
 	int iYOffset = y;

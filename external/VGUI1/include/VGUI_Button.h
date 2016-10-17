@@ -42,6 +42,13 @@ public:
 	virtual bool isMouseClickEnabled(MouseCode code);
 	virtual void fireActionSignal();
 	virtual Panel* createPropertyPanel();
+
+	/**
+	*	@return The text set on this button.
+	*	Added because there is no other way to get it. Must be non-virtual! - Solokiller
+	*/
+	inline const char* GetText() const { return _text; }
+
 protected:
 	virtual void setButtonController(ButtonController* _buttonController);
 	virtual void paintBackground();

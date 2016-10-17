@@ -29,6 +29,8 @@
 
 #include "font/FontRendering.h"
 
+#include "ui/vgui1/vgui_SchemeManager.h"
+
 #include "CEngine.h"
 
 EXPOSE_SINGLE_INTERFACE_GLOBALVAR( CEngine, IMetaTool, DEFAULT_IMETATOOL_NAME, g_Engine );
@@ -150,6 +152,12 @@ bool CEngine::Run()
 
 void CEngine::Shutdown()
 {
+	if( m_pSchemeManager )
+	{
+		delete m_pSchemeManager;
+		m_pSchemeManager = nullptr;
+	}
+
 	g_FontManager.Shutdown();
 
 	g_Video.Shutdown();
@@ -195,6 +203,10 @@ bool CEngine::HostInit()
 
 	pApp->reset();
 
+	Scheme_Init();
+
+	m_pSchemeManager = new CSchemeManager( g_Video.GetWidth(), g_Video.GetHeight() );
+
 	m_pRootPanel = new vgui::Panel( 0, 0, g_Video.GetWidth(), g_Video.GetHeight() );
 
 	m_pRootPanel->setPaintBorderEnabled( false );
@@ -206,6 +218,54 @@ bool CEngine::HostInit()
 	m_pRootPanel->setCursor( pScheme->getCursor( vgui::Scheme::scu_none ) );
 
 	g_pVGUI1Surface = new CVGUI1Surface( m_pRootPanel );
+
+	//Ripped from the SDK, this sets up reasonable defaults.
+	int r, g, b, a;
+
+	// primary text color
+	// Get the colors
+	//!! two different types of scheme here, need to integrate
+	SchemeHandle_t hPrimaryScheme = m_pSchemeManager->getSchemeHandle( "Primary Button Text" );
+	{
+		// font
+		pScheme->setFont( vgui::Scheme::sf_primary1, m_pSchemeManager->getFont( hPrimaryScheme ) );
+
+		// text color
+		m_pSchemeManager->getFgColor( hPrimaryScheme, r, g, b, a );
+		pScheme->setColor( vgui::Scheme::sc_primary1, r, g, b, a );		// sc_primary1 is non-transparent orange
+
+																	// background color (transparent black)
+		m_pSchemeManager->getBgColor( hPrimaryScheme, r, g, b, a );
+		pScheme->setColor( vgui::Scheme::sc_primary3, r, g, b, a );
+
+		// armed foreground color
+		m_pSchemeManager->getFgArmedColor( hPrimaryScheme, r, g, b, a );
+		pScheme->setColor( vgui::Scheme::sc_secondary2, r, g, b, a );
+
+		// armed background color
+		m_pSchemeManager->getBgArmedColor( hPrimaryScheme, r, g, b, a );
+		pScheme->setColor( vgui::Scheme::sc_primary2, r, g, b, a );
+
+		//!! need to get this color from scheme file
+		// used for orange borders around buttons
+		m_pSchemeManager->getBorderColor( hPrimaryScheme, r, g, b, a );
+		// pScheme->setColor(Scheme::sc_secondary1, r, g, b, a );
+		pScheme->setColor( vgui::Scheme::sc_secondary1, static_cast<int>( 255 * 0.7 ), static_cast<int>( 170 * 0.7 ), 0, 0 );
+	}
+
+	// Change the second primary font (used in the scoreboard)
+	SchemeHandle_t hScoreboardScheme = m_pSchemeManager->getSchemeHandle( "Scoreboard Text" );
+	{
+		pScheme->setFont( vgui::Scheme::sf_primary2, m_pSchemeManager->getFont( hScoreboardScheme ) );
+	}
+
+	// Change the third primary font (used in command menu)
+	SchemeHandle_t hCommandMenuScheme = m_pSchemeManager->getSchemeHandle( "CommandMenu Text" );
+	{
+		pScheme->setFont( vgui::Scheme::sf_primary3, m_pSchemeManager->getFont( hCommandMenuScheme ) );
+	}
+
+	vgui::App::getInstance()->setScheme( pScheme );
 
 	CreateMainMenu();
 
