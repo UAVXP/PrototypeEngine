@@ -207,14 +207,14 @@ bool CEngine::HostInit()
 
 	g_pVGUI1Surface = new CVGUI1Surface( m_pRootPanel );
 
-	CreateMainMenuBackground();
+	CreateMainMenu();
 
 	return true;
 }
 
 #include <VGUI_Font.h>
 
-void CEngine::CreateMainMenuBackground()
+void CEngine::CreateMainMenu()
 {
 	int wide, tall;
 

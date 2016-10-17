@@ -523,6 +523,7 @@ void CVGUI1Surface::pushMakeCurrent( vgui::Panel* panel, bool useInsets )
 	m_iOffsets[ 1 ] = iYOffset;
 
 	glEnable( GL_SCISSOR_TEST );
+	//TODO: push scissor area on a stack to restore in pop? - Solokiller
 	glScissor( x, ( g_Video.GetHeight() - y ) - panel->getTall(), panel->getWide(), panel->getTall() );
 }
 

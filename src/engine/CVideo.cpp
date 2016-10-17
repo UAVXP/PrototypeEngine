@@ -3,6 +3,8 @@
 #include "Logging.h"
 #include "IMetaLoader.h"
 
+#include <VGUI_App.h>
+
 #include "GLUtils.h"
 
 #include "CVideo.h"
@@ -38,8 +40,19 @@ void CVideo::Shutdown()
 	}
 }
 
+const vgui::MouseCode SDLMouseCodeToVGUI1[] = 
+{
+	vgui::MOUSE_LAST,		//Not used
+	vgui::MOUSE_LEFT, 
+	vgui::MOUSE_MIDDLE,
+	vgui::MOUSE_RIGHT,
+	vgui::MOUSE_LAST,		//X1, not used
+	vgui::MOUSE_LAST,		//X2, not used
+};
+
 bool CVideo::Run( CEngine& engine )
 {
+	//TODO: this belongs elsewhere since it covers input as well. - Solokiller
 	glEnable( GL_TEXTURE_2D );
 
 	bool bQuit = false;
@@ -50,16 +63,55 @@ bool CVideo::Run( CEngine& engine )
 	{
 		while( SDL_PollEvent( &event ) )
 		{
-			if( event.type == SDL_WINDOWEVENT )
+			switch( event.type )
 			{
-				//Close if the main window receives a close request.
-				if( event.window.event == SDL_WINDOWEVENT_CLOSE )
+			case SDL_WINDOWEVENT:
 				{
-					if( SDL_GetWindowID( m_pWindow ) == event.window.windowID )
+					//Close if the main window receives a close request.
+					if( event.window.event == SDL_WINDOWEVENT_CLOSE )
 					{
-						bQuit = true;
+						if( SDL_GetWindowID( m_pWindow ) == event.window.windowID )
+						{
+							bQuit = true;
+						}
 					}
+
+					break;
 				}
+
+			case SDL_MOUSEMOTION:
+				{
+					vgui::App::getInstance()->internalCursorMoved( event.motion.x, event.motion.y, g_pVGUI1Surface );
+
+					break;
+				}
+
+			case SDL_MOUSEBUTTONDOWN:
+			case SDL_MOUSEBUTTONUP:
+				{
+					const auto mouseCode = SDLMouseCodeToVGUI1[ static_cast<size_t>( event.button.button ) ];
+
+					//Unsupported button
+					if( mouseCode == vgui::MOUSE_LAST )
+						break;
+
+					//TODO: can handle double click here. - Solokiller
+					if( event.type == SDL_MOUSEBUTTONDOWN )
+						vgui::App::getInstance()->internalMousePressed( mouseCode, g_pVGUI1Surface );
+					else
+						vgui::App::getInstance()->internalMouseReleased( mouseCode, g_pVGUI1Surface );
+					break;
+				}
+
+			case SDL_MOUSEWHEEL:
+				{
+					//TODO: verify that this is correct. This delta may not be what VGUI1 expects. - Solokiller
+					vgui::App::getInstance()->internalMouseWheeled( event.wheel.x, g_pVGUI1Surface );
+
+					break;
+				}
+
+				//TODO: key events. - Solokiller
 			}
 		}
 

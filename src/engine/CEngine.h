@@ -44,7 +44,7 @@ private:
 
 	bool HostInit();
 
-	void CreateMainMenuBackground();
+	void CreateMainMenu();
 
 	void RenderFrame();
 

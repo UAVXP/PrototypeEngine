@@ -3,6 +3,11 @@
 
 #include <VGUI_Panel.h>
 
+namespace vgui
+{
+class Button;
+}
+
 class CMainMenu final : public vgui::Panel
 {
 public:
@@ -11,6 +16,10 @@ public:
 
 private:
 	void CreateBackground();
+
+private:
+	vgui::Button* m_pOptions = nullptr;
+	vgui::Button* m_pExit = nullptr;
 };
 
 #endif //ENGINE_UI_VGUI1_CMAINMENU_H
