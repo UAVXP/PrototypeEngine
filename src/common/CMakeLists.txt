@@ -11,6 +11,8 @@ add_sources(
 	FilePaths.h
 	FilePaths.cpp
 	FileSystem2.h
+	FileUtils.h
+	FileUtils.cpp
 	IMetaLoader.h
 	IMetaTool.h
 	Logging.h
