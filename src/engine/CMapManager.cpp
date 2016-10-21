@@ -93,12 +93,12 @@ void CMapManager::RenderMap( long long uiDeltaTime )
 {
 	m_flDeltaTime = uiDeltaTime / 1000.0f;
 
-	printf( "delta: %f\n", m_flDeltaTime );
+	//Msg( "delta: %f\n", m_flDeltaTime );
 
 	if( m_flDeltaTime > 1.0f )
 		m_flDeltaTime = 0.0f;
 
-	printf( "delta: %f\n", m_flDeltaTime );
+	//Msg( "delta: %f\n", m_flDeltaTime );
 
 	if( m_flYawVel )
 		m_Camera.RotateYaw( m_flDeltaTime * m_flYawVel );
