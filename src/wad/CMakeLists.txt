@@ -1,0 +1,9 @@
+add_sources(
+	CWadFile.h
+	CWadManager.h
+	CWadManager.cpp
+	WadConstants.h
+	WadFile.h
+	WadIO.h
+	WadIO.cpp
+)

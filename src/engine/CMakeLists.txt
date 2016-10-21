@@ -45,6 +45,7 @@ add_subdirectory( ${CMAKE_SOURCE_DIR}/external/SOURCE_SDK/src/public/steam publi
 add_subdirectory( ${CMAKE_SOURCE_DIR}/external/VGUI1/include VGUI1_include )
 add_subdirectory( ${CMAKE_SOURCE_DIR}/src/steam steam )
 add_subdirectory( ${CMAKE_SOURCE_DIR}/src/common common )
+add_subdirectory( ${CMAKE_SOURCE_DIR}/src/wad wad )
 add_subdirectory( console )
 add_subdirectory( font )
 add_subdirectory( ui )
