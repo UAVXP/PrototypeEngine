@@ -2,6 +2,7 @@
 #include <cctype>
 #include <cstdint>
 
+#include <VGUI_App.h>
 #include <VGUI_Panel.h>
 #include <VGUI_Font.h>
 #include <VGUI_BaseFontPlat.h>
@@ -539,4 +540,54 @@ void CVGUI1Surface::popMakeCurrent( vgui::Panel* panel )
 void CVGUI1Surface::applyChanges()
 {
 	//Nothing
+}
+
+const vgui::MouseCode SDLMouseCodeToVGUI1[] =
+{
+	vgui::MOUSE_LAST,		//Not used
+	vgui::MOUSE_LEFT,
+	vgui::MOUSE_MIDDLE,
+	vgui::MOUSE_RIGHT,
+	vgui::MOUSE_LAST,		//X1, not used
+	vgui::MOUSE_LAST,		//X2, not used
+};
+
+void CVGUI1Surface::HandleSDLEvent( SDL_Event& event )
+{
+	switch( event.type )
+	{
+	case SDL_MOUSEMOTION:
+		{
+			vgui::App::getInstance()->internalCursorMoved( event.motion.x, event.motion.y, g_pVGUI1Surface );
+
+			break;
+		}
+
+	case SDL_MOUSEBUTTONDOWN:
+	case SDL_MOUSEBUTTONUP:
+		{
+			const auto mouseCode = SDLMouseCodeToVGUI1[ static_cast<size_t>( event.button.button ) ];
+
+			//Unsupported button
+			if( mouseCode == vgui::MOUSE_LAST )
+				break;
+
+			//TODO: can handle double click here. - Solokiller
+			if( event.type == SDL_MOUSEBUTTONDOWN )
+				vgui::App::getInstance()->internalMousePressed( mouseCode, g_pVGUI1Surface );
+			else
+				vgui::App::getInstance()->internalMouseReleased( mouseCode, g_pVGUI1Surface );
+			break;
+		}
+
+	case SDL_MOUSEWHEEL:
+		{
+			//TODO: verify that this is correct. This delta may not be what VGUI1 expects. - Solokiller
+			vgui::App::getInstance()->internalMouseWheeled( event.wheel.x, g_pVGUI1Surface );
+
+			break;
+		}
+
+		//TODO: key events. - Solokiller
+	}
 }

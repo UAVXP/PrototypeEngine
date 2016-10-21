@@ -54,6 +54,8 @@ public:
 	void popMakeCurrent( vgui::Panel* panel ) override;
 	void applyChanges() override;
 
+	void HandleSDLEvent( SDL_Event& event );
+
 private:
 	int m_iOffsets[ 2 ] = { 0, 0 };
 
