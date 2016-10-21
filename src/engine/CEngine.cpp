@@ -4,6 +4,8 @@
 
 #include <gl/glew.h>
 
+#include <SDL2/SDL.h>
+
 #include <VGUI_App.h>
 #include <VGUI_Panel.h>
 #include <VGUI_BitmapTGA.h>
@@ -147,7 +149,40 @@ bool CEngine::Startup( IMetaLoader& loader, CreateInterfaceFn* pFactories, const
 
 bool CEngine::Run()
 {
-	return g_Video.Run( *this );
+	glEnable( GL_TEXTURE_2D );
+
+	bool bQuit = false;
+
+	SDL_Event event;
+
+	while( !bQuit )
+	{
+		while( SDL_PollEvent( &event ) )
+		{
+			switch( event.type )
+			{
+			case SDL_WINDOWEVENT:
+				{
+					//Close if the main window receives a close request.
+					if( event.window.event == SDL_WINDOWEVENT_CLOSE )
+					{
+						if( SDL_GetWindowID( g_Video.GetWindow() ) == event.window.windowID )
+						{
+							bQuit = true;
+						}
+					}
+
+					break;
+				}
+			}
+
+			g_pVGUI1Surface->HandleSDLEvent( event );
+		}
+
+		RunFrame();
+	}
+
+	return true;
 }
 
 void CEngine::Shutdown()

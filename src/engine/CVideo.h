@@ -49,12 +49,6 @@ public:
 	*/
 	void Shutdown();
 
-	/**
-	*	Runs the main loop. Calls engine.RunFrame every frame.
-	*	@return Whether the loop completed successfully.
-	*/
-	bool Run( CEngine& engine );
-
 private:
 	bool CreateGameWindow();
 

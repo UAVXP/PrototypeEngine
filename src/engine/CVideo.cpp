@@ -40,45 +40,6 @@ void CVideo::Shutdown()
 	}
 }
 
-bool CVideo::Run( CEngine& engine )
-{
-	//TODO: this belongs elsewhere since it covers input as well. - Solokiller
-	glEnable( GL_TEXTURE_2D );
-
-	bool bQuit = false;
-
-	SDL_Event event;
-
-	while( !bQuit )
-	{
-		while( SDL_PollEvent( &event ) )
-		{
-			switch( event.type )
-			{
-			case SDL_WINDOWEVENT:
-				{
-					//Close if the main window receives a close request.
-					if( event.window.event == SDL_WINDOWEVENT_CLOSE )
-					{
-						if( SDL_GetWindowID( m_pWindow ) == event.window.windowID )
-						{
-							bQuit = true;
-						}
-					}
-
-					break;
-				}
-			}
-
-			g_pVGUI1Surface->HandleSDLEvent( event );
-		}
-
-		engine.RunFrame();
-	}
-
-	return true;
-}
-
 bool CVideo::CreateGameWindow()
 {
 	Uint32 windowFlags = /*SDL_WINDOW_HIDDEN |*/ SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL;
