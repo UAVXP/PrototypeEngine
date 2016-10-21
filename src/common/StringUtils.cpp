@@ -108,8 +108,8 @@ char* UTIL_FixSlashes( char* pszPath )
 
 	for( char* pszPos = pszPath; *pszPos; ++pszPos )
 	{
-		if( *pszPos == FILESYSTEM_OTHER_PATH_SEPARATOR_CHAR )
-			*pszPos = FILESYSTEM_PATH_SEPARATOR_CHAR;
+		if( *pszPos == '\\' )
+			*pszPos = '/';
 	}
 
 	return pszPath;

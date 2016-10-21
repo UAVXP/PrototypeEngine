@@ -32,6 +32,10 @@ bool IsControlChar( const char c );
 */
 const char* Parse( const char* pszData, char* pszBuffer, const size_t uiBufferSize, bool* bBufferTooSmall = nullptr );
 
+extern char com_token[ MINIMUM_BUFFER_SIZE ];
+
+const char* Parse( const char* pszData );
+
 /**
 *	Returns true if additional data is waiting to be processed on this line.
 *	@param pszLine Line to check.

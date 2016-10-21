@@ -2,6 +2,7 @@
 #define STDLIB_STRINGUTILS_H
 
 #include <algorithm>
+#include <cctype>
 #include <cstring>
 
 /**
@@ -39,23 +40,52 @@ inline size_t StringHash( const char* const pszString )
 	return ( _Val );
 }
 
-template<typename STR>
-struct Hash_C_String final : public std::unary_function<STR*, size_t>
+/**
+*	String hashing function
+*	Ripped from the MSVC std::hash<std::string> implementation
+*	Case insensitive
+*/
+inline size_t StringHashI( const char* pszString )
 {
-	std::size_t operator()( STR pszStr ) const
+	if( !pszString )
+		pszString = "";
+
+	size_t _Val = 2166136261U;
+	size_t _First = 0;
+	size_t _Last = strlen( pszString );
+	size_t _Stride = 1 + _Last / 10;
+
+	for( ; _First < _Last; _First += _Stride )
+		_Val = 16777619U * _Val ^ ( size_t ) tolower( pszString[ _First ] );
+	return ( _Val );
+}
+
+/**
+*	Functor for char* hashing.
+*/
+template<size_t( *HASHER )( const char* )>
+struct BaseRawCharHash : public std::unary_function<const char*, size_t>
+{
+	size_t operator()( const char* pszString ) const
 	{
-		return StringHash( pszStr );
+		return HASHER( pszString );
 	}
 };
 
-template<typename STR, int( *COMPARE )( STR lhs, STR rhs ) = strcmp>
-struct EqualTo_C_String final
+typedef BaseRawCharHash<StringHash> RawCharHash;
+typedef BaseRawCharHash<StringHashI> RawCharHashI;
+
+template<int( *COMPARE )( const char*, const char* )>
+struct BaseRawCharEqualTo : public std::binary_function<const char*, const char*, bool>
 {
-	constexpr bool operator()( STR lhs, STR rhs ) const
+	bool operator()( const char* pszLHS, const char* pszRHS ) const
 	{
-		return COMPARE( lhs, rhs ) == 0;
+		return COMPARE( pszLHS, pszRHS ) == 0;
 	}
 };
+
+typedef BaseRawCharEqualTo<strcmp> RawCharEqualTo;
+typedef BaseRawCharEqualTo<stricmp> RawCharEqualToI;
 
 template<typename STR, int( *COMPARE )( STR lhs, STR rhs ) = strcmp>
 struct Less_C_String final

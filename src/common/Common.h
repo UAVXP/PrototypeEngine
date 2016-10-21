@@ -12,4 +12,11 @@
 #define ASSERT
 #endif
 
+#define BSP_FILE_EXT ".bsp"
+
+
+typedef unsigned char byte;
+
+#define	MAX_QPATH		64			// max length of a quake game pathname
+
 #endif //COMMON_COMMON_H

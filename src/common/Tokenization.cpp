@@ -16,6 +16,13 @@ bool IsControlChar( const char c )
 		c == ',';
 }
 
+char com_token[ MINIMUM_BUFFER_SIZE ] = {};
+
+const char* Parse( const char* pszData )
+{
+	return Parse( pszData, com_token, sizeof( com_token ) );
+}
+
 const char* Parse( const char* pszData, char* pszBuffer, const size_t uiBufferSize, bool* bBufferTooSmall )
 {
 	assert( pszBuffer != nullptr );

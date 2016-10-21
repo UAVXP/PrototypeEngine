@@ -1,6 +1,8 @@
 #ifndef COMMON_CFILE_H
 #define COMMON_CFILE_H
 
+#include "Common.h"
+
 /**
 *	RAII wrapper around IFileSystem files.
 */
