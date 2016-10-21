@@ -46,6 +46,9 @@ public:
 	virtual void  setFont(vgui::Scheme::SchemeFont schemeFont);
 	virtual void  setFont(vgui::Font* font);
 	virtual void  setSize(int wide,int tall);
+
+	const char* GetText() const { return _text; }
+
 protected:
 	virtual void paint(Panel* panel);
 };

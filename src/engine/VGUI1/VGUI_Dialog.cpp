@@ -6,7 +6,7 @@ namespace vgui
 {
 void Dialog::CenterOnScreen()
 {
-	CenterInRegion( g_Video.GetWidth(), g_Video.GetHeight() );
+	CenterInRegion( g_Video.GetWidth(), g_Video.GetHeight(), true );
 }
 
 void Dialog::CenterOnPanel( Panel* pPanel )
@@ -19,7 +19,7 @@ void Dialog::CenterOnPanel( Panel* pPanel )
 
 		pPanel->getAbsExtents( x, y, x2, y2 );
 
-		CenterInRegion( x, y, x2 - x, y2 - y );
+		CenterInRegion( x, y, x2 - x, y2 - y, false );
 	}
 }
 
@@ -30,15 +30,15 @@ void Dialog::CenterOnParent()
 
 void Dialog::CenterOnPoint( int x, int y )
 {
-	CenterInRegion( x * 2, y * 2 );
+	CenterInRegion( x * 2, y * 2, true );
 }
 
-void Dialog::CenterInRegion( int wide, int tall )
+void Dialog::CenterInRegion( int wide, int tall, const bool bAbsolute )
 {
-	CenterInRegion( 0, 0, wide, tall );
+	CenterInRegion( 0, 0, wide, tall, bAbsolute );
 }
 
-void Dialog::CenterInRegion( int x, int y, int wide, int tall )
+void Dialog::CenterInRegion( int x, int y, int wide, int tall, const bool bAbsolute )
 {
 	int myWide, myTall;
 
@@ -47,7 +47,8 @@ void Dialog::CenterInRegion( int x, int y, int wide, int tall )
 	int xDest = x + ( wide - myWide ) / 2;
 	int yDest = y + ( tall - myTall ) / 2;
 
-	screenToLocal( xDest, yDest );
+	if( bAbsolute )
+		screenToLocal( xDest, yDest );
 
 	setPos( xDest, yDest );
 }

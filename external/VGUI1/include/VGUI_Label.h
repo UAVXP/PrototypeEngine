@@ -62,6 +62,9 @@ public:
 	virtual void setFgColor(int r,int g,int b,int a);
 	virtual void setFgColor(vgui::Scheme::SchemeColor sc);
 	virtual void setContentFitted(bool state);
+
+	TextImage* GetTextImage() const { return _textImage; }
+
 protected:
 	virtual void computeAlignment(int& tx0,int& ty0,int& tx1,int& ty1,int& ix0,int& iy0,int& ix1,int& iy1,int& minX,int& minY,int& maxX,int& maxY);
 	virtual void paint();

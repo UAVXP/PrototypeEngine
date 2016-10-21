@@ -36,12 +36,12 @@ public:
 	/**
 	*	Centers in the given region.
 	*/
-	void CenterInRegion( int wide, int tall );
+	void CenterInRegion( int wide, int tall, const bool bAbsolute = true );
 
 	/**
 	*	Centers in the given region.
 	*/
-	void CenterInRegion( int x, int y, int wide, int tall );
+	void CenterInRegion( int x, int y, int wide, int tall, const bool bAbsolute = true );
 };
 }
 

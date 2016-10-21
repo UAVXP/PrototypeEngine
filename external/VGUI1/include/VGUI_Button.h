@@ -11,6 +11,7 @@
 #include<VGUI.h>
 #include<VGUI_Label.h>
 #include<VGUI_Dar.h>
+#include <VGUI_TextImage.h>
 
 namespace vgui
 {
@@ -47,7 +48,7 @@ public:
 	*	@return The text set on this button.
 	*	Added because there is no other way to get it. Must be non-virtual! - Solokiller
 	*/
-	inline const char* GetText() const { return _text; }
+	inline const char* GetText() const { return GetTextImage()->GetText(); }
 
 protected:
 	virtual void setButtonController(ButtonController* _buttonController);
