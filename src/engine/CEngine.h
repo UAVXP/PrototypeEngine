@@ -35,6 +35,8 @@ public:
 
 	vgui::Panel* GetRootPanel() { return m_pRootPanel; }
 
+	CMainMenu* GetMainMenu() { return m_MainMenu.get(); }
+
 	void SetMyGameDir( const char* const pszGameDir );
 
 	bool Startup( IMetaLoader& loader, CreateInterfaceFn* pFactories, const size_t uiNumFactories ) override;

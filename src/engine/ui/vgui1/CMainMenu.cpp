@@ -6,6 +6,7 @@
 #include "VGUI1/vgui_loadtga.h"
 
 #include "COptionsDialog.h"
+#include "CCreateServerDialog.h"
 
 #include "Engine.h"
 
@@ -23,6 +24,26 @@ public:
 	{
 		auto pDialog = m_pMainMenu->CreateOptionsDialog();
 		pDialog->CenterOnParent();
+	}
+
+private:
+	CMainMenu* m_pMainMenu;
+};
+
+class CCreateServerActionSignal : public vgui::ActionSignal
+{
+public:
+	CCreateServerActionSignal( CMainMenu* pMainMenu )
+		: m_pMainMenu( pMainMenu )
+	{
+	}
+
+	void actionPerformed( vgui::Panel* panel ) override
+	{
+		auto pDialog = m_pMainMenu->CreateCreateServerDialog();
+		pDialog->CenterOnParent();
+
+		pDialog->setVisible( true );
 	}
 
 private:
@@ -61,7 +82,17 @@ CMainMenu::CMainMenu( vgui::Panel* pRoot, int x, int y, int wide, int tall )
 
 	CreateBackground();
 
-	m_pOptions = new vgui::Button( "Options", static_cast<int>( wide * 0.05 ), static_cast<int>( tall * 0.75 ) );
+	const float flStartYPos = tall * 0.7f;
+
+	m_pCreateServer = new vgui::Button( "Create Server", static_cast<int>( wide * 0.05 ), static_cast<int>( flStartYPos ) );
+
+	m_pCreateServer->setParent( this );
+
+	m_pCreateServer->setFgColor( 0, 0, 0, 255 );
+
+	m_pCreateServer->addActionSignal( new CCreateServerActionSignal( this ) );
+
+	m_pOptions = new vgui::Button( "Options", static_cast<int>( wide * 0.05 ), static_cast<int>( flStartYPos + m_pCreateServer->getTall() ) );
 
 	m_pOptions->setParent( this );
 
@@ -69,7 +100,7 @@ CMainMenu::CMainMenu( vgui::Panel* pRoot, int x, int y, int wide, int tall )
 
 	m_pOptions->addActionSignal( new COptionsActionSignal( this ) );
 
-	m_pExit = new vgui::Button( "Exit", static_cast<int>( wide * 0.05 ), static_cast<int>( tall * 0.75 ) + m_pOptions->getTall() );
+	m_pExit = new vgui::Button( "Exit", static_cast<int>( wide * 0.05 ), static_cast<int>( flStartYPos + m_pCreateServer->getTall() + m_pOptions->getTall() ) );
 
 	m_pExit->setParent( this );
 
@@ -88,6 +119,14 @@ COptionsDialog* CMainMenu::CreateOptionsDialog()
 		m_pOptionsDialog = new COptionsDialog( g_Engine.GetRootPanel(), 0, 0, 400, 300 );
 
 	return m_pOptionsDialog;
+}
+
+CCreateServerDialog* CMainMenu::CreateCreateServerDialog()
+{
+	if( !m_pCreateServerDialog )
+		m_pCreateServerDialog = new CCreateServerDialog( g_Engine.GetRootPanel(), 0, 0, 400, 300 );
+
+	return m_pCreateServerDialog;
 }
 
 void CMainMenu::CreateBackground()

@@ -1,4 +1,6 @@
 add_sources(
+	CCreateServerDialog.h
+	CCreateServerDialog.cpp
 	CMainMenu.h
 	CMainMenu.cpp
 	COptionsDialog.h

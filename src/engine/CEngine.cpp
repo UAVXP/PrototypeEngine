@@ -304,6 +304,7 @@ void CEngine::CreateMainMenu()
 
 	auto pFont = new vgui::Font( "Arial", data.get(), size, 16, 8, 0, 400, false, false, false, false );
 
+	/*
 	std::string szString = "Foobar\n";
 
 	for( char ch = 'A'; ch <= 'Z'; ++ch )
@@ -330,6 +331,7 @@ void CEngine::CreateMainMenu()
 
 	pText->setText( szString.c_str() );
 	pText2->setText( "Foobar" );
+	*/
 }
 
 void CEngine::RenderFrame()

@@ -9,6 +9,7 @@ class Button;
 }
 
 class COptionsDialog;
+class CCreateServerDialog;
 
 class CMainMenu final : public vgui::Panel
 {
@@ -18,14 +19,18 @@ public:
 
 	COptionsDialog* CreateOptionsDialog();
 
+	CCreateServerDialog* CreateCreateServerDialog();
+
 private:
 	void CreateBackground();
 
 private:
+	vgui::Button* m_pCreateServer = nullptr;
 	vgui::Button* m_pOptions = nullptr;
 	vgui::Button* m_pExit = nullptr;
 
 	COptionsDialog* m_pOptionsDialog = nullptr;
+	CCreateServerDialog* m_pCreateServerDialog = nullptr;
 };
 
 #endif //ENGINE_UI_VGUI1_CMAINMENU_H
