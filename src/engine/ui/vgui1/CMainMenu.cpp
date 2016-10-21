@@ -116,7 +116,7 @@ CMainMenu::~CMainMenu()
 COptionsDialog* CMainMenu::CreateOptionsDialog()
 {
 	if( !m_pOptionsDialog )
-		m_pOptionsDialog = new COptionsDialog( g_Engine.GetRootPanel(), 0, 0, 400, 300 );
+		m_pOptionsDialog = new COptionsDialog( this, 0, 0, 400, 300 );
 
 	return m_pOptionsDialog;
 }
@@ -124,7 +124,7 @@ COptionsDialog* CMainMenu::CreateOptionsDialog()
 CCreateServerDialog* CMainMenu::CreateCreateServerDialog()
 {
 	if( !m_pCreateServerDialog )
-		m_pCreateServerDialog = new CCreateServerDialog( g_Engine.GetRootPanel(), 0, 0, 400, 300 );
+		m_pCreateServerDialog = new CCreateServerDialog( this, 0, 0, 400, 300 );
 
 	return m_pCreateServerDialog;
 }
