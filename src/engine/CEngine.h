@@ -1,6 +1,7 @@
 #ifndef ENGINE_CENGINE_H
 #define ENGINE_CENGINE_H
 
+#include <chrono>
 #include <memory>
 
 #include "Platform.h"
@@ -28,6 +29,8 @@ public:
 	*	This is essentially the working directory for the game directory.
 	*/
 	const char* GetMyGameDir() const { return m_szMyGameDir; }
+
+	const char* GetWorkingDirectory() const { return m_szWorkingDir; }
 
 	IMetaLoader* GetLoader() { return m_pLoader; }
 
@@ -61,6 +64,8 @@ private:
 private:
 	char m_szMyGameDir[ MAX_PATH ] = {};
 
+	char m_szWorkingDir[ MAX_PATH ] = {};
+
 	IMetaLoader* m_pLoader = nullptr;
 
 	CLibrary m_steam_api;
@@ -72,6 +77,10 @@ private:
 	vgui::Panel* m_pRootPanel = nullptr;
 
 	std::unique_ptr<CMainMenu> m_MainMenu;
+
+	std::chrono::milliseconds m_StartTime = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::high_resolution_clock::now().time_since_epoch() );
+	std::chrono::milliseconds m_LastTick;
+	std::chrono::milliseconds m_LastFPSCheck;
 
 private:
 	CEngine( const CEngine& ) = delete;

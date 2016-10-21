@@ -20,3 +20,5 @@ IFileSystem2* g_pFileSystem = nullptr;
 CSteamAPIContext g_SteamAPIContext;
 
 font::CFontManager g_FontManager;
+
+CMapManager g_MapManager;

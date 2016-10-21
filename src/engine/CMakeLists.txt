@@ -18,6 +18,7 @@ include_directories(
 	${CMAKE_SOURCE_DIR}/external/HL_SDK/public/math
 	${CMAKE_SOURCE_DIR}/external/SDL2/include
 	${CMAKE_SOURCE_DIR}/external/GLEW/include
+	${CMAKE_SOURCE_DIR}/external/GLM/include
 	${CMAKE_SOURCE_DIR}/external/FREETYPE/include
 	${CMAKE_SOURCE_DIR}/external/SOURCE_SDK/src/public/steam
 	${CMAKE_SOURCE_DIR}/external/VGUI1/include
@@ -25,10 +26,14 @@ include_directories(
 )
 
 add_sources(
+	CCamera.h
+	CCamera.cpp
 	CEngine.h
 	CEngine.cpp
 	CFileSystemWrapper.h
 	CFileSystemWrapper.cpp
+	CMapManager.h
+	CMapManager.cpp
 	CVideo.h
 	CVideo.cpp
 	Engine.h
@@ -46,8 +51,12 @@ add_subdirectory( ${CMAKE_SOURCE_DIR}/external/VGUI1/include VGUI1_include )
 add_subdirectory( ${CMAKE_SOURCE_DIR}/src/steam steam )
 add_subdirectory( ${CMAKE_SOURCE_DIR}/src/common common )
 add_subdirectory( ${CMAKE_SOURCE_DIR}/src/wad wad )
+add_subdirectory( ${CMAKE_SOURCE_DIR}/src/bsp bsp_common )
+add_subdirectory( ${CMAKE_SOURCE_DIR}/src/entity entity )
+add_subdirectory( bsp )
 add_subdirectory( console )
 add_subdirectory( font )
+add_subdirectory( gl )
 add_subdirectory( ui )
 add_subdirectory( VGUI1 )
 
@@ -61,6 +70,7 @@ target_compile_definitions( Engine PRIVATE
 	${SHARED_DEFS}
 	STEAM_API_NODLL
 	VERSION_SAFE_STEAM_API_INTERFACES
+	GLEW_STATIC
 )
 
 if( UNIX )

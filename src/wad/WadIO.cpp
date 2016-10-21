@@ -15,31 +15,31 @@
 
 #include "common/ByteSwap.h"
 
+#include "Engine.h"
+#include "FileSystem2.h"
+#include "CFile.h"
+
 #include "WadIO.h"
 
 wadinfo_t* LoadWadFile( const char* const pszFileName )
 {
 	assert( pszFileName );
 
-	FILE* pFile = fopen( pszFileName, "rb" );
+	CFile file( pszFileName, "rb" );
 
-	if( !pFile )
+	if( !file.IsOpen() )
 	{
 		printf( "LoadWadFile: Couldn't open WAD \"%s\"\n", pszFileName );
 		return nullptr;
 	}
 
-	fseek( pFile, 0, SEEK_END );
-
-	const size_t size = ftell( pFile );
-
-	fseek( pFile, 0, SEEK_SET );
+	const auto size = file.Size();
 
 	wadinfo_t* pWad = reinterpret_cast<wadinfo_t*>( new uint8_t[ size ] );
 
-	const size_t read = fread( pWad, 1, size, pFile );
+	const auto read = file.Read( pWad, size );
 
-	fclose( pFile );
+	file.Close();
 
 	if( read != size )
 	{

@@ -33,6 +33,8 @@
 
 #include "ui/vgui1/vgui_SchemeManager.h"
 
+#include "gl/CShaderManager.h"
+
 #include "CEngine.h"
 
 EXPOSE_SINGLE_INTERFACE_GLOBALVAR( CEngine, IMetaTool, DEFAULT_IMETATOOL_NAME, g_Engine );
@@ -53,6 +55,15 @@ bool CEngine::Startup( IMetaLoader& loader, CreateInterfaceFn* pFactories, const
 	if( !( *m_szMyGameDir ) )
 	{
 		UTIL_ShowMessageBox( "No game directory set", "Error", LogType::ERROR );
+		return false;
+	}
+
+	if( !m_pLoader->GetToolDirectory( m_szWorkingDir, sizeof( m_szWorkingDir ) ) )
+		return false;
+
+	if( !( *m_szWorkingDir ) )
+	{
+		UTIL_ShowMessageBox( "No working directory set", "Error", LogType::ERROR );
 		return false;
 	}
 
@@ -144,6 +155,9 @@ bool CEngine::Startup( IMetaLoader& loader, CreateInterfaceFn* pFactories, const
 		return false;
 	}
 
+	if( !g_ShaderManager.LoadShaders() )
+		return false;
+
 	return true;
 }
 
@@ -176,7 +190,10 @@ bool CEngine::Run()
 				}
 			}
 
-			g_pVGUI1Surface->HandleSDLEvent( event );
+			if( g_MapManager.IsMapLoaded() )
+				g_MapManager.HandleSDLEvent( event );
+			else if( m_MainMenu->isVisible() )
+				g_pVGUI1Surface->HandleSDLEvent( event );
 		}
 
 		RunFrame();
@@ -187,6 +204,8 @@ bool CEngine::Run()
 
 void CEngine::Shutdown()
 {
+	g_MapManager.FreeMap();
+
 	if( m_pSchemeManager )
 	{
 		delete m_pSchemeManager;
@@ -213,13 +232,13 @@ void CEngine::RunFrame()
 
 bool CEngine::SetupFileSystem()
 {
-	g_pFileSystem->AddSearchPath( ".", "ROOT" );
+	g_pFileSystem->AddSearchPath( GetWorkingDirectory(), "ROOT" );
 
 	//This will let us get files from the original game directory. - Solokiller
 	g_pFileSystem->AddSearchPath( "../valve", "GAME" );
 
 	//Not a typo, the current dir is added twice as both ROOT and BASE in this order. - Solokiller
-	g_pFileSystem->AddSearchPath( ".", "BASE" );
+	g_pFileSystem->AddSearchPath( GetWorkingDirectory(), "BASE" );
 
 	return true;
 }
@@ -371,15 +390,28 @@ void CEngine::CreateMainMenu()
 
 void CEngine::RenderFrame()
 {
-	RenderVGUI1();
+	std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::high_resolution_clock::now().time_since_epoch() );
+
+	const auto diff = ( now - m_LastTick ).count();
+
+	//Frame limit
+	if( diff >= ( 1 / 60.0f ) )
+	{
+		m_LastTick = now;
+
+		glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
+		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
+
+		if( g_MapManager.IsMapLoaded() )
+			g_MapManager.RenderMap( diff );
+
+		if( m_MainMenu->isVisible() )
+			RenderVGUI1();
+	}
 }
 
 void CEngine::RenderVGUI1()
 {
-	glClearColor( 0, 0, 0, 1 );
-
-	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
 	glViewport( 0, 0, g_Video.GetWidth(), g_Video.GetHeight() );
 
 	glMatrixMode( GL_PROJECTION );

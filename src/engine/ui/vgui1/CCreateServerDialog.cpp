@@ -2,9 +2,12 @@
 #include <VGUI_Button.h>
 #include <VGUI_ListPanel.h>
 
+#include "Common.h"
+
 #include "Engine.h"
 #include "FileSystem2.h"
 #include "Logging.h"
+#include "StringUtils.h"
 
 #include "CCreateServerDialog.h"
 
@@ -78,6 +81,8 @@ void CCreateServerDialog::StartServer()
 		setVisible( false );
 
 		g_Engine.GetMainMenu()->setVisible( false );
+
+		g_MapManager.LoadMap( m_pMap->GetText() );
 	}
 }
 
@@ -87,15 +92,41 @@ void CCreateServerDialog::PopulateMapList()
 
 	if( auto pszFileName = g_pFileSystem->FindFirstEx( "maps/*.bsp", &find, FileSystemFindFlag::SKIP_IDENTICAL_PATHS ) )
 	{
+		char szFileName[ MAX_PATH ];
+		char szMapName[ MAX_PATH ];
+
 		do
 		{
-			auto pButton = new vgui::Button( pszFileName, 0, 0, 200, 20 );
+			UTIL_SafeStrncpy( szFileName, pszFileName, sizeof( szFileName ) );
 
-			pButton->setFgColor( 0, 0, 0, 255 );
+			UTIL_FixSlashes( szFileName );
 
-			pButton->addActionSignal( m_pSignal );
+			const int iResult = sscanf( szFileName, "maps/%s.bsp", szMapName );
 
-			m_pMapList->addItem( pButton );
+			if( iResult == 1 )
+			{
+				szMapName[ sizeof( szMapName ) - 1 ] = '\0';
+
+				const size_t uiLength = strlen( szMapName );
+
+				const size_t uiExtLength = strlen( BSP_FILE_EXT );
+
+				//Trim the .bsp part.
+				if( uiLength > uiExtLength )
+				{
+					szMapName[ uiLength - uiExtLength ] = '\0';
+				}
+
+				auto pButton = new vgui::Button( szMapName, 0, 0, 200, 20 );
+
+				pButton->setFgColor( 0, 0, 0, 255 );
+
+				pButton->addActionSignal( m_pSignal );
+
+				m_pMapList->addItem( pButton );
+			}
+			else
+				Msg( "Failed to extract map name from filename\n" );
 		}
 		while( pszFileName = g_pFileSystem->FindNext( find ) );
 

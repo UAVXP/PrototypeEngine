@@ -17,6 +17,7 @@ add_sources(
 	IMetaTool.h
 	Logging.h
 	Logging.cpp
+	Mathlib.h
 	Platform.h
 	Platform.cpp
 	StringUtils.h

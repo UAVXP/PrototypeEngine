@@ -5,6 +5,8 @@
 
 #include <VGUI_App.h>
 
+#include <gl/glew.h>
+
 #include "GLUtils.h"
 
 #include "CVideo.h"
@@ -15,6 +17,14 @@ bool CVideo::Initialize()
 	{
 		if( !CreateGameWindow() )
 			return false;
+	}
+
+	glewExperimental = GL_TRUE;
+
+	if( glewInit() != GLEW_OK )
+	{
+		Msg( "Failed to initialize GLEW\n" );
+		return false;
 	}
 
 	return true;

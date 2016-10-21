@@ -13,6 +13,8 @@
 
 #include "font/CFontManager.h"
 
+#include "CMapManager.h"
+
 class IFileSystem2;
 
 /**
@@ -32,5 +34,7 @@ extern IFileSystem2* g_pFileSystem;
 extern CSteamAPIContext g_SteamAPIContext;
 
 extern font::CFontManager g_FontManager;
+
+extern CMapManager g_MapManager;
 
 #endif //ENGINE_ENGINE_H
