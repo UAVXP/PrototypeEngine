@@ -24,7 +24,7 @@ enum FileSystemFindFlag : FileSystemFindFlags_t
 }
 
 /**
-*	GoldSource2 filesystem interface. Provides extended functionality to the filesystem used by GoldSource.
+*	PowerSource filesystem interface. Provides extended functionality to the filesystem used by GoldSource.
 */
 class IFileSystem2 : public IFileSystem
 {

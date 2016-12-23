@@ -1,7 +1,7 @@
 ###################################################
 #                                                 #
 #                                                 #
-#	GoldSource2 Engine CMake build file           #
+#	PowerSource Engine CMake build file           #
 #                                                 #
 #                                                 #
 ###################################################
@@ -169,7 +169,7 @@ if( "${STEAMCOMMON}" STREQUAL "" )
 endif()
 
 #Base dir for game outputs
-set( GAME_BASE_PATH "${STEAMCOMMON}/Half-Life/goldsource2" )
+set( GAME_BASE_PATH "${STEAMCOMMON}/Half-Life/powersource" )
 
 set( GAME_BIN_PATH "${GAME_BASE_PATH}/bin" )
 
@@ -224,6 +224,6 @@ else()
 	set( UNIX_FS_LIB )
 endif()
 
-project( GoldSource2 )
+project( PowerSource )
 
 add_subdirectory( src )

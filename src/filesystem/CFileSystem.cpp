@@ -21,7 +21,7 @@ static CFileSystem g_FileSystem;
 }
 
 /*
-*	Backwards compatibility: expose the filesystem as both the GoldSource and GoldSource2 version so older code can use it.
+*	Backwards compatibility: expose the filesystem as both the GoldSource and PowerSource version so older code can use it.
 */
 EXPOSE_SINGLE_INTERFACE_GLOBALVAR( CFileSystem, IFileSystem, FILESYSTEM_INTERFACE_VERSION, g_FileSystem );
 EXPOSE_SINGLE_INTERFACE_GLOBALVAR( CFileSystem, IFileSystem2, FILESYSTEM2_INTERFACE_VERSION, g_FileSystem );
