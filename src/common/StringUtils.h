@@ -66,8 +66,11 @@ inline size_t StringHashI( const char* pszString )
 *	Functor for char* hashing.
 */
 template<size_t( *HASHER )( const char* )>
-struct BaseRawCharHash : public std::unary_function<const char*, size_t>
+struct BaseRawCharHash
 {
+	typedef const char* argument_type;
+	typedef size_t result_type;
+
 	size_t operator()( const char* pszString ) const
 	{
 		return HASHER( pszString );
@@ -78,8 +81,12 @@ typedef BaseRawCharHash<StringHash> RawCharHash;
 typedef BaseRawCharHash<StringHashI> RawCharHashI;
 
 template<int( *COMPARE )( const char*, const char* )>
-struct BaseRawCharEqualTo : public std::binary_function<const char*, const char*, bool>
+struct BaseRawCharEqualTo
 {
+	typedef const char* first_argument_type;
+	typedef const char* second_argument_type;
+	typedef bool result_type;
+
 	bool operator()( const char* pszLHS, const char* pszRHS ) const
 	{
 		return COMPARE( pszLHS, pszRHS ) == 0;
