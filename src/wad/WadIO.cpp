@@ -107,7 +107,7 @@ const miptex_t* Wad_FindTexture( const wadinfo_t* pWad, const char* const pszNam
 	for( int iLump = 0; iLump < pWad->numlumps; ++iLump, ++pLump )
 	{
 		//Found it.
-		if( _stricmp( pszName, pLump->name ) == 0 )
+		if( stricmp( pszName, pLump->name ) == 0 )
 		{
 			//Must be a miptex lump.
 			if( pLump->type != ( TYP_LUMPY + TYP_LUMPY_MIPTEX ) )

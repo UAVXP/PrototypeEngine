@@ -113,7 +113,7 @@ public:
 
 		for( int iLump = 0; iLump < m_pWad->numlumps; ++iLump, ++pLump )
 		{
-			if( _stricmp( pszName, pLump->name ) == 0 )
+			if( stricmp( pszName, pLump->name ) == 0 )
 			{
 				if( iLumpType != TYP_NONE )
 				{

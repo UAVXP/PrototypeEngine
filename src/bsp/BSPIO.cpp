@@ -31,16 +31,16 @@ bool CopyLump( const dheader_t* const pHeader, const BSPLump lump, DATA& data )
 	const int iLength = pHeader->lumps[ lump ].filelen;
 	const int iOfs = pHeader->lumps[ lump ].fileofs;
 
-	if( iLength % sizeof( DATA::Type_t ) )
+	if( iLength % sizeof( typename DATA::Type_t ) )
 	{
-		printf( "Irregular length encountered while loading lump %d (%u byte chunk, alignment is %u)\n", lump, iLength % sizeof( DATA::Type_t ), sizeof( DATA::Type_t ) );
+		printf( "Irregular length encountered while loading lump %d (%u byte chunk, alignment is %u)\n", lump, iLength % sizeof( typename DATA::Type_t ), sizeof( typename DATA::Type_t ) );
 		return false;
 	}
 
 	//Total size exceeds destination size.
-	if( iLength > ( sizeof( DATA::Type_t ) * DATA::MAX_SIZE ) )
+	if( iLength > ( sizeof( typename DATA::Type_t ) * DATA::MAX_SIZE ) )
 	{
-		printf( "Source data too large while loading lump %d (max: %u, actual: %d)\n", lump, sizeof( DATA::Type_t ) * DATA::MAX_SIZE, iLength );
+		printf( "Source data too large while loading lump %d (max: %u, actual: %d)\n", lump, sizeof( typename DATA::Type_t ) * DATA::MAX_SIZE, iLength );
 		return false;
 	}
 
@@ -64,7 +64,7 @@ int FastChecksum( const void* const buffer, int bytes )
 template<typename DATA>
 void FastBSPDataChecksum( DATA& data )
 {
-	data.checksum = FastChecksum( data.data, data.count * sizeof( DATA::Type_t ) );
+	data.checksum = FastChecksum( data.data, data.count * sizeof( typename DATA::Type_t ) );
 }
 
 std::unique_ptr<dheader_t> LoadBSPFile( const char* const pszFileName )

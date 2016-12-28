@@ -118,6 +118,47 @@ typedef struct tagPOINT
 #endif
 #endif
 
+//Newer compilers might define _rotr as a macro. - Solokiller
+#if !defined( _rotr )
+extern "C" {
+	inline unsigned _rotr( unsigned val, int shift )
+	{
+		register unsigned lobit;        /* non-zero means lo bit set */
+		register unsigned num = val;    /* number to rotate */
+
+		shift &= 0x1f;                  /* modulo 32 -- this will also make
+										negative shifts work */
+
+		while( shift-- ) {
+			lobit = num & 1;        /* get high bit */
+			num >>= 1;              /* shift right one bit */
+			if( lobit )
+				num |= 0x80000000;  /* set hi bit if lo bit was set */
+		}
+
+		return num;
+	}
+
+	inline unsigned _rotl( unsigned val, int shift )
+	{
+		register unsigned hibit;        /* non-zero means hi bit set */
+		register unsigned num = val;    /* number to rotate */
+
+		shift &= 0x1f;                  /* modulo 32 -- this will also make
+										negative shifts work */
+
+		while( shift-- ) {
+			hibit = num & 0x80000000;	/* get lo bit */
+			num <<= 1;					/* shift left one bit */
+			if( hibit )
+				num |= 1;				/* set lo bit if hi bit was set */
+		}
+
+		return num;
+	}
+}
+#endif
+
 #endif
 
 #undef ARRAYSIZE

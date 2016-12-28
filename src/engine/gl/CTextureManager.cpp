@@ -42,7 +42,7 @@ void CTextureManager::Shutdown()
 	m_TexMap.clear();
 
 	//Force clear the memory used by the map.
-	m_TexMap.swap( TexMap_t() );
+	TexMap_t().swap( m_TexMap );
 
 	//Free all textures.
 	for( auto& tex : m_Textures )
