@@ -14,6 +14,7 @@
 #include <memory>
 
 #include "common/ByteSwap.h"
+#include "Platform.h"
 
 #include "Engine.h"
 #include "FileSystem2.h"

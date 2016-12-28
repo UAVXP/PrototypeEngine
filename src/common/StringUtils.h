@@ -5,6 +5,8 @@
 #include <cctype>
 #include <cstring>
 
+#include "Platform.h"
+
 /**
 *	Checks if a printf operation was successful
 */
