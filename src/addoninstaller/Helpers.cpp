@@ -1,12 +1,11 @@
-#include <cstdio>
+#include <cassert>
 #include <cctype>
+#include <cstdarg>
+#include <cstdio>
 #include <cstdlib>
+#include <string>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <cstdarg>
-
-#include <fstream>
-#include <string>
 
 #include "steam_api.h"
 
@@ -16,8 +15,6 @@
 
 #include "AddonInstaller.h"
 #include "FileSystem2.h"
-
-#include <cassert>
 
 #undef CopyFile
 
@@ -46,7 +43,7 @@ void Log( const LogLevel log, const char* const pszFormat, ... )
 #endif
 
 /*
-* Helper class to redirect output when executing other programs
+*	Helper class to redirect output when executing other programs
 */
 class CRedirectOutput final
 {
@@ -150,7 +147,7 @@ bool ValidatePath( const char* const pszPath, const bool bIsDirectory, const boo
 			return true;
 		}
 		else if( !bSilent )
-			Log( LogLevel::ALWAYS, "Error: That path is %sa directory\n", bIsDirectory ? "not" : "" );
+			Log( LogLevel::ALWAYS, "Error: That path is %sa directory\n", bIsDirectory ? "not " : "" );
 	}
 	else if( !bSilent )
 		Log( LogLevel::ALWAYS, "Error: That path does not exist\n" );
@@ -188,9 +185,8 @@ bool AskForDirectory( const char* const pszName, char* pszPath, const size_t uiB
 	if( !pszName )
 		return false;
 
-	size_t uiAttempts = 0;
-
-	do
+	//The user can exit by closing the terminal.
+	while( true )
 	{
 		Log( LogLevel::ALWAYS, "Please enter the path to the %s installation directory: ", pszName );
 
@@ -214,56 +210,76 @@ bool AskForDirectory( const char* const pszName, char* pszPath, const size_t uiB
 
 		//In case the buffer was modified and contains garbage.
 		memset( pszPath, 0, uiBufferSize );
-
-		++uiAttempts;
 	}
-	while( uiAttempts < MAX_QUESTION_ATTEMPTS );
-
-	return uiAttempts < MAX_QUESTION_ATTEMPTS;
-}
-
-/*
-* Asks for the HL install directory, and validates the existence of the mod directories
-*/
-bool AskForHLDirectory( std::vector<CAppInfo>& appInfos )
-{
-	char szBasePath[ MAX_PATH ];
-
-	if( AskForDirectory( "Half-Life", szBasePath, sizeof( szBasePath ) ) )
-	{
-		for( auto& appInfo : appInfos )
-		{
-			//Could have been filled in by Steam beforehand
-			if( !appInfo.szPath[ 0 ] )
-			{
-				const int iRet = snprintf( appInfo.szPath, sizeof( appInfo.szPath ), "%s" FILESYSTEM_PATH_SEPARATOR "%s", szBasePath, appInfo.szModDir.c_str() );
-
-				if( iRet < 0 || iRet >= sizeof( appInfo.szPath ) )
-				{
-					Log( LogLevel::ALWAYS, "Error: Path is invalid or too long!\n" );
-					return false;
-				}
-				else
-				{
-					if( !ValidatePath( appInfo.szPath, true, true ) )
-					{
-						//Couldn't find the install dir, might be somewhere else.
-						memset( appInfo.szPath, 0, sizeof( appInfo.szPath ) );
-					}
-				}
-			}
-		}
-	}
-	else
-		return false;
 
 	return true;
 }
 
-/*
-* Asks for the directories to all apps that aren't already known.
-* Returns true if all questions were answered, false otherwise.
-*/
+bool AskForHLDirectory( std::vector<CAppInfo>& appInfos )
+{
+	char szBasePath[ MAX_PATH ];
+
+	if( !AskForDirectory( "Half-Life", szBasePath, sizeof( szBasePath ) ) )
+		return false;
+
+	for( auto& appInfo : appInfos )
+	{
+		//Could have been filled in by Steam beforehand
+		if( !appInfo.szPath[ 0 ] )
+		{
+			//This is only a guess; if the mods are installed on different hard drives this will fail.
+			//Whether Steam allows that is unknown.
+			const int iRet = snprintf( appInfo.szPath, sizeof( appInfo.szPath ), "%s" FILESYSTEM_PATH_SEPARATOR "%s", szBasePath, appInfo.szModDir.c_str() );
+
+			if( iRet < 0 || iRet >= sizeof( appInfo.szPath ) )
+			{
+				Log( LogLevel::ALWAYS, "Error: Path is invalid or too long!\n" );
+				return false;
+			}
+			else
+			{
+				if( !ValidatePath( appInfo.szPath, true, true ) )
+				{
+					//Couldn't find the install dir, might be somewhere else.
+					memset( appInfo.szPath, 0, sizeof( appInfo.szPath ) );
+				}
+			}
+		}
+	}
+
+	return true;
+}
+
+void PrintPaths( const std::vector<CAppInfo>& appInfos )
+{
+	size_t uiLongest = 0;
+
+	for( const auto& appInfo : appInfos )
+	{
+		const size_t uiLength = appInfo.szName.length();
+
+		if( uiLength > uiLongest )
+			uiLongest = uiLength;
+	}
+
+	Log( LogLevel::ALWAYS, "\nPaths for all games:\n" );
+
+	for( const auto& appInfo : appInfos )
+	{
+		const char* pszPath;
+
+		if( appInfo.szPath[ 0 ] )
+		{
+			pszPath = appInfo.szPath;
+		}
+		else
+			pszPath = "Not Found";
+
+		//Align paths
+		Log( LogLevel::ALWAYS, "%-*s: %s\n", int( uiLongest ), appInfo.szName.c_str(), pszPath );
+	}
+}
+
 bool AskForDirectories( std::vector<CAppInfo>& appInfos )
 {
 	//Are all paths already filled in?
@@ -289,37 +305,19 @@ bool AskForDirectories( std::vector<CAppInfo>& appInfos )
 	}
 
 	{
-		size_t uiLongest = 0;
+		PrintPaths( appInfos );
 
-		for( const auto& appInfo : appInfos )
-		{
-			const size_t uiLength = appInfo.szName.length();
-
-			if( uiLength > uiLongest )
-				uiLongest = uiLength;
-		}
-
-		Log( LogLevel::ALWAYS, "\nPaths for all games:\n" );
+		Log( LogLevel::ALWAYS, "\n" );
 
 		size_t uiFound = 0;
 
 		for( const auto& appInfo : appInfos )
 		{
-			const char* pszPath;
-
 			if( appInfo.szPath[ 0 ] )
 			{
 				++uiFound;
-				pszPath = appInfo.szPath;
 			}
-			else
-				pszPath = "Not Found";
-
-			//Align paths
-			Log( LogLevel::ALWAYS, "%-*s: %s\n", int( uiLongest ), appInfo.szName.c_str(), pszPath );
 		}
-
-		Log( LogLevel::ALWAYS, "\n" );
 
 		if( uiFound > 0 )
 		{
@@ -341,22 +339,17 @@ bool AskForDirectories( std::vector<CAppInfo>& appInfos )
 	return true;
 }
 
-bool GetDirectoriesFromSteam( std::vector<CAppInfo>& appInfos )
+bool GetDirectoriesFromSteam( ISteamApps& steamApps, std::vector<CAppInfo>& appInfos )
 {
-	ISteamApps* pApps = g_AddonInstaller.GetSteamAPIContext().SteamApps();
-
-	if( !pApps )
-		return false;
-
 	Log( LogLevel::EXTRA, "Requesting app installation directories from Steam...\n" );
 
 	for( auto& appInfo : appInfos )
 	{
-		if( pApps->BIsAppInstalled( appInfo.appId ) )
+		if( steamApps.BIsAppInstalled( appInfo.appId ) )
 		{
 			char szDirectory[ MAX_PATH ];
 
-			const uint32 uiLength = pApps->GetAppInstallDir( appInfo.appId, szDirectory, sizeof( szDirectory ) );
+			const uint32 uiLength = steamApps.GetAppInstallDir( appInfo.appId, szDirectory, sizeof( szDirectory ) );
 
 			snprintf( appInfo.szPath, sizeof( appInfo.szPath ), "%s" FILESYSTEM_PATH_SEPARATOR "%s", szDirectory, appInfo.szModDir.c_str() );
 		}
@@ -398,8 +391,6 @@ fs::path BShiftBSPConverterFilename()
 #endif
 }
 
-using ExistenceCheckerFn = bool ( * )( const fs::path& );
-
 bool RequiredFileExists( const fs::path& filename )
 {
 	std::error_code error;
@@ -415,14 +406,6 @@ bool UnzipExists( const fs::path& filename )
 	return access( ( fs::path( "/usr/bin/" ) / filename ).u8string().c_str(), X_OK ) == 0;
 #endif
 }
-
-struct RequiredFile_t
-{
-	const fs::path filename;
-	const char* const pszHelpInfo;
-
-	ExistenceCheckerFn existenceChecker;
-};
 
 #define REQ_FILE_VERIFY_FILES "Please verify the game's files or validate the server installation"
 
@@ -460,29 +443,11 @@ bool HasRequiredFiles()
 
 bool CopyFile( const std::string& szFrom, const std::string& szTo )
 {
-	std::ifstream from( szFrom, std::ios::binary );
+	std::error_code error;
 
-	if( !from )
-		return false;
-
-	std::ofstream to( szTo, std::ios::binary );
-
-	if( !to )
-		return false;
-
-	to << from.rdbuf();
-
-	return true;
+	//Much faster than the crappy fstream version. - Solokiller
+	return fs::copy_file( szFrom, szTo, fs::copy_options::overwrite_existing, error ) && !error;
 }
-
-#define FS_MAPS_DIR "maps" FILESYSTEM_PATH_SEPARATOR
-#define FS_SKIES_DIR "gfx" FILESYSTEM_PATH_SEPARATOR "env" FILESYSTEM_PATH_SEPARATOR
-
-#define FS_FROM_PATH "FROM"
-#define FS_MAPS_PATH "MAPS"
-
-#define BSP_EXT ".bsp"
-#define ENT_EXT ".ent"
 
 void CopyInteractive( const char* const pszName, const std::string& szFrom, const std::string& szTo, size_t& uiFailedCount, size_t& uiSucceededCount )
 {
@@ -501,11 +466,7 @@ void CopyInteractive( const char* const pszName, const std::string& szFrom, cons
 	}
 }
 
-/*
-* This abuses Valve's filesystem to copy maps.
-* Better than writing wrappers ourselves.
-*/
-bool CopyGameFiles( const CAppInfo& appInfo )
+bool CopyGameFiles( const fs::path& destPath, IFileSystem2& fileSystem, const CAppInfo& appInfo )
 {
 	if( !appInfo.szPath[ 0 ] )
 		return false;
@@ -518,15 +479,11 @@ bool CopyGameFiles( const CAppInfo& appInfo )
 
 	const std::string szBasePath = std::string( appInfo.szPath ) + FILESYSTEM_PATH_SEPARATOR;
 
-	const fs::path destPath = g_AddonInstaller.GetSCGameDir();
-
 	size_t uiFailedCount = 0;
 
 	size_t uiTotalSucceededCount = 0;
 
 	const std::string szMapsPath = szBasePath + FS_MAPS_DIR;
-
-	auto pFileSystem = g_AddonInstaller.GetFileSystem();
 
 	if( !DoesFileExist( ( szMapsPath + appInfo.mapNames[ 0 ] + BSP_EXT ).c_str() ) )
 	{
@@ -566,24 +523,24 @@ bool CopyGameFiles( const CAppInfo& appInfo )
 
 		fs::create_directories( toSkiesPath );
 
-		pFileSystem->AddSearchPathNoWrite( szSkiesPath.c_str(), FS_FROM_PATH );
+		fileSystem.AddSearchPathNoWrite( szSkiesPath.c_str(), FS_FROM_PATH );
 
 		FileFindHandle_t hFile = FILESYSTEM_INVALID_FIND_HANDLE;
 
-		if( const char* pszFilename = pFileSystem->FindFirst( "*", &hFile, FS_FROM_PATH ) )
+		if( const char* pszFilename = fileSystem.FindFirst( "*", &hFile, FS_FROM_PATH ) )
 		{
 			do
 			{
-				if( !pFileSystem->FindIsDirectory( hFile ) )
+				if( !fileSystem.FindIsDirectory( hFile ) )
 				{
 					CopyInteractive( pszFilename, szSkiesPath + pszFilename, ( toSkiesPath / pszFilename ).u8string(), uiFailedCount, uiSucceededCount );
 				}
 
-				pszFilename = pFileSystem->FindNext( hFile );
+				pszFilename = fileSystem.FindNext( hFile );
 			}
 			while( pszFilename != nullptr );
 
-			pFileSystem->FindClose( hFile );
+			fileSystem.FindClose( hFile );
 
 			Log( LogLevel::EXTRA, "Done\nCopied %u skies\n", uiSucceededCount );
 
@@ -593,7 +550,7 @@ bool CopyGameFiles( const CAppInfo& appInfo )
 			Log( LogLevel::ALWAYS, "Warning: No skies found\n" );
 
 		//Note: if this is not done, it will reuse the path later on!
-		pFileSystem->RemoveAllSearchPaths();
+		fileSystem.RemoveAllSearchPaths();
 	}
 
 	if( uiTotalSucceededCount > 0 )
@@ -654,16 +611,16 @@ bool CopyGameFiles( const CAppInfo& appInfo )
 	Log( LogLevel::NORMAL, "Flushing temporary data...\n" );
 
 	{
-		pFileSystem->AddSearchPath( ( destPath / FS_MAPS_DIR ).u8string().c_str(), FS_MAPS_PATH );
+		fileSystem.AddSearchPath( ( destPath / FS_MAPS_DIR ).u8string().c_str(), FS_MAPS_PATH );
 
 		for( const auto& map : appInfo.mapNames )
 		{
 			const std::string szMapName = map + ENT_EXT;
 
-			pFileSystem->RemoveFile( szMapName.c_str(), FS_MAPS_PATH );
+			fileSystem.RemoveFile( szMapName.c_str(), FS_MAPS_PATH );
 		}
 
-		pFileSystem->RemoveAllSearchPaths();
+		fileSystem.RemoveAllSearchPaths();
 	}
 
 	Log( LogLevel::NORMAL, "Finished!\n" );

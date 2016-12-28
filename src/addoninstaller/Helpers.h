@@ -2,18 +2,28 @@
 #define ADDONINSTALLER_HELPERS_H
 
 #include <experimental/filesystem>
-#include <vector>
 #include <string>
+#include <vector>
 
 #include "steam_api.h"
 
 #include "Platform.h"
 
+class ISteamApps;
+class IFileSystem2;
+
 namespace fs = std::experimental::filesystem;
 
-const size_t MAX_QUESTION_ATTEMPTS = 10;	//Maximum number of times to ask a question. Avoids infinite loops and such.
-
 const AppId_t SVENCOOP_APPID = 225840;
+
+#define FS_MAPS_DIR "maps" FILESYSTEM_PATH_SEPARATOR
+#define FS_SKIES_DIR "gfx" FILESYSTEM_PATH_SEPARATOR "env" FILESYSTEM_PATH_SEPARATOR
+
+#define FS_FROM_PATH "FROM"
+#define FS_MAPS_PATH "MAPS"
+
+#define BSP_EXT ".bsp"
+#define ENT_EXT ".ent"
 
 class CAppInfo final
 {
@@ -95,9 +105,9 @@ public:
 
 enum class LogLevel
 {
-	SILENT	= -1,
 	FIRST	= 0,
-	ALWAYS	= FIRST,
+	SILENT	= FIRST,
+	ALWAYS,
 	NORMAL,
 	EXTRA,
 	VERBOSE,
@@ -115,17 +125,55 @@ enum class QuestionAction
 	NO = 2
 };
 
+/**
+*	Asks a simple Yes or No question.
+*	@return Whether the user input YES or NO.
+*/
 QuestionAction AskYNQuestion( const char* const pszQuestion );
+
+using ExistenceCheckerFn = bool( *)( const fs::path& );
+
+struct RequiredFile_t
+{
+	const fs::path filename;
+	const char* const pszHelpInfo;
+
+	ExistenceCheckerFn existenceChecker;
+};
 
 bool ValidatePath( const char* const pszPath, const bool bIsDirectory, const bool bSilent = false );
 bool DoesFileExist( const char* const pszFilename );
 bool AskForDirectory( const char* const pszName, char* pszPath, const size_t uiBufferSize );
+
+/**
+*	Asks for the HL install directory, and validates the existence of the mod directories
+*/
 bool AskForHLDirectory( std::vector<CAppInfo>& appInfos );
 
-bool AskForDirectories( std::vector<CAppInfo>& appInfos );
-bool GetDirectoriesFromSteam( std::vector<CAppInfo>& appInfos );
+/**
+*	Prints the paths of all apps, or "Not Found" if the path is not set.
+*/
+void PrintPaths( const std::vector<CAppInfo>& appInfos );
 
+/**
+*	Asks for the directories to all apps that aren't already known.
+*	Returns true if all questions were answered, false otherwise.
+*/
+bool AskForDirectories( std::vector<CAppInfo>& appInfos );
+
+/**
+*	Queries Steam for the mod directories of each app.
+*/
+bool GetDirectoriesFromSteam( ISteamApps& steamApps, std::vector<CAppInfo>& appInfos );
+
+/**
+*	Filename of the ripent tool.
+*/
 fs::path RipentFilename();
+
+/**
+*	Filename of the unzip tool.
+*/
 fs::path UnzipFilename();
 
 /**
@@ -135,7 +183,9 @@ bool HasRequiredFiles();
 
 /**
 *	Copies all game files for a given game.
+*	This abuses Valve's filesystem to copy maps.
+*	Better than writing wrappers ourselves.
 */
-bool CopyGameFiles( const CAppInfo& appInfo );
+bool CopyGameFiles( const fs::path& destPath, IFileSystem2& fileSystem, const CAppInfo& appInfo );
 
 #endif //ADDONINSTALLER_HELPERS_H

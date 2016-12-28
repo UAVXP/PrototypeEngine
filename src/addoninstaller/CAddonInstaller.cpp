@@ -81,7 +81,6 @@ bool CAddonInstaller::Startup( IMetaLoader& loader, CreateInterfaceFn* pFactorie
 	if( m_SteamAPIContext.SteamApps()->GetAppInstallDir( SVENCOOP_APPID, szSCGameDir, sizeof( szSCGameDir ) ) )
 	{
 		m_SCGameDir = fs::path( szSCGameDir ) / "svencoop";
-		m_SCGameDir.make_preferred();
 	}
 	else
 	{
@@ -122,6 +121,8 @@ bool CAddonInstaller::Run()
 		g_LogLevel = static_cast<LogLevel>( iLogLevel );
 	}
 
+	const bool bSkipQuestions = GetCommandLine()->HasArgument( "-skipquestions" );
+
 	/*
 	Disabled until all code handles silent properly
 	if( GetCommandLine()->HasArgument( "-silent" ) )
@@ -150,10 +151,13 @@ bool CAddonInstaller::Run()
 
 	if( !apps.empty() )
 	{
-		if( !GetDirectoriesFromSteam( apps ) )
+		if( !GetDirectoriesFromSteam( *GetSteamAPIContext().SteamApps(), apps ) )
 			Log( LogLevel::ALWAYS, "Failed to get installation directories from Steam\n" );
 
-		if( AskForDirectories( apps ) )
+		if( bSkipQuestions )
+			PrintPaths( apps );
+
+		if( bSkipQuestions || AskForDirectories( apps ) )
 		{
 			if( HasRequiredFiles() )
 			{
@@ -163,10 +167,11 @@ bool CAddonInstaller::Run()
 				{
 					if( appInfo.szPath[ 0 ] )
 					{
-					
-						if( !CopyGameFiles( appInfo ) )
-							LogHelp( appInfo );
-						
+						if( bSkipQuestions || AskYNQuestion( ( std::string( "Do you want to install the files for \"" ) + appInfo.szName + "\"?" ).c_str() ) == QuestionAction::YES )
+						{
+							if( !CopyGameFiles( GetSCGameDir(), *GetFileSystem(), appInfo ) )
+								LogHelp( appInfo );
+						}
 					}
 				}
 
@@ -183,7 +188,7 @@ bool CAddonInstaller::Run()
 	else
 		Log( LogLevel::ALWAYS, "No apps provided to copy\n" );
 
-	if( !bSilent )
+	if( !bSilent && !bSkipQuestions )
 	{
 		Log( LogLevel::ALWAYS, "Press Enter to continue..." );
 		getchar();
@@ -211,5 +216,4 @@ void CAddonInstaller::LogHelp( const CAppInfo& appInfo )
 	Log( LogLevel::ALWAYS, "Verify that the path is correct\n" );
 	Log( LogLevel::ALWAYS, "Verify the game's files through Steam\nRight-click the game->Properties->Local Files->Verify integrity of game cache\n" );
 	Log( LogLevel::ALWAYS, "Verify that Sven Co-op's files are properly installed using the same method\n" );
-	Log( LogLevel::ALWAYS, "Ensure that this program is being run from the Sven Co-op/svencoop/ directory\n" );
 }
