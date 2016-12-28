@@ -294,13 +294,21 @@ bool AskForDirectories( std::vector<CAppInfo>& appInfos )
 		}
 	}
 
+	bool bShouldSpecifyManually = true;
+
 	//Ask for the HL install dir first.
 	if( bShouldAsk )
 	{
-		if( !AskForHLDirectory( appInfos ) )
+		if( AskYNQuestion( "One or more games could not be found or are not installed. Manually specify the installation directory?" ) == QuestionAction::YES )
 		{
-			Log( LogLevel::ALWAYS, "Error: Unable to find installation directory. Please try again after verifying the games are installed and have been run at least once\n" );
-			return false;
+			//Don't do the same thing twice.
+			bShouldSpecifyManually = false;
+
+			if( !AskForHLDirectory( appInfos ) )
+			{
+				Log( LogLevel::ALWAYS, "Error: Unable to find installation directory. Please try again after verifying the games are installed and have been run at least once\n" );
+				return false;
+			}
 		}
 	}
 
@@ -328,11 +336,14 @@ bool AskForDirectories( std::vector<CAppInfo>& appInfos )
 			Log( LogLevel::ALWAYS, "No installations could be found. Please enter the paths manually\n" );
 	}
 
-	for( auto& appInfo : appInfos )
+	if( bShouldSpecifyManually )
 	{
-		if( !AskForDirectory( appInfo.szName.c_str(), appInfo.szPath, sizeof( appInfo.szPath ) ) )
+		for( auto& appInfo : appInfos )
 		{
-			Log( LogLevel::ALWAYS, "Unable to find installation directory. Please try again after verifying the game is installed and has been run at least once\n" );
+			if( !AskForDirectory( appInfo.szName.c_str(), appInfo.szPath, sizeof( appInfo.szPath ) ) )
+			{
+				Log( LogLevel::ALWAYS, "Unable to find installation directory. Please try again after verifying the game is installed and has been run at least once\n" );
+			}
 		}
 	}
 
@@ -355,7 +366,7 @@ bool GetDirectoriesFromSteam( ISteamApps& steamApps, std::vector<CAppInfo>& appI
 		}
 		else
 		{
-			Log( LogLevel::EXTRA, "The game %s is not installed\n", appInfo.szName.c_str() );
+			Log( LogLevel::NORMAL, "The game %s is not installed\n", appInfo.szName.c_str() );
 		}
 	}
 
