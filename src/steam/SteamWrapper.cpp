@@ -200,6 +200,9 @@ CLibrary Steam_LoadSteamAPI( const char* const pszPath )
 	//The Steam API library uses standard library naming on all platforms. - Solokiller
 	steam_api.Load( CLibArgs( "steam_api" ).Path( pszPath ) );
 
+	if( !steam_api.IsLoaded() )
+		Warning( "Failed to load Steam API library from \"%s\": %s\n", pszPath, CLibrary::GetLoadErrorDescription() );
+
 	return steam_api;
 }
 

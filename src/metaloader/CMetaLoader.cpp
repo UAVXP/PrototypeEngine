@@ -197,7 +197,7 @@ bool CMetaLoader::RunLoader()
 
 		if( !m_ToolLib.Load( CLibArgs( pszToolLib ).DisablePrefixes( true ).Path( toolPath.u8string().c_str() ) ) )
 		{
-			Msg( "Couldn't load tool \"%s\" library \"%s\"\n", pszToolName, pszToolLib );
+			Msg( "Couldn't load tool \"%s\" library \"%s\" from \"%s\"\n", pszToolName, pszToolLib, toolPath.u8string().c_str() );
 			return false;
 		}
 

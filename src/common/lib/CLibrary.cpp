@@ -135,7 +135,12 @@ const char* CLibrary::GetLoadErrorDescription()
 		strcpy( szBuffer, "Unknown error" );
 	}
 #else
-	strncpy( szBuffer, dlerror(), sizeof( szBuffer ) );
+	const char* pszError = dlerror();
+
+	if( !pszError )
+		pszError = "No Error (did you load a library successfully?)";
+
+	strncpy( szBuffer, pszError, sizeof( szBuffer ) );
 	szBuffer[ sizeof( szBuffer ) - 1 ] = '\0';
 #endif
 
